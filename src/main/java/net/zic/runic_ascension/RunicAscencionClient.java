@@ -10,17 +10,17 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
-@Mod(value = AscensionRuneMasters.MODID, dist = Dist.CLIENT)
-@EventBusSubscriber(modid = AscensionRuneMasters.MODID, value = Dist.CLIENT)
-public class AscensionRuneMastersClient {
-    public AscensionRuneMastersClient(ModContainer container) {
+@Mod(value = RunicAscension.MODID, dist = Dist.CLIENT)
+@EventBusSubscriber(modid = RunicAscension.MODID, value = Dist.CLIENT)
+public class RunicAscencionClient {
+    public RunicAscencionClient(ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }
 
     @SubscribeEvent
     static void onClientSetup(FMLClientSetupEvent event) {
         // Some client setup code
-        AscensionRuneMasters.LOGGER.info("HELLO FROM CLIENT SETUP");
-        AscensionRuneMasters.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+        RunicAscension.LOGGER.info("HELLO FROM CLIENT SETUP");
+        RunicAscension.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
     }
 }
