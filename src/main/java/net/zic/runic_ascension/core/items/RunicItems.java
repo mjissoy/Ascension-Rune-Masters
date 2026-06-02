@@ -88,6 +88,16 @@ public final class RunicItems {
                     )
             ));
 
+
+    public static final DeferredItem<RunicScrapItem> RUNIC_SCRAP_ORIGIN = registerScrap("runic_scrap_origin", "origin", 4);
+    public static final DeferredItem<RunicScrapItem> RUNIC_SCRAP_INTENT = registerScrap("runic_scrap_intent", "intent", 4);
+    public static final DeferredItem<RunicScrapItem> RUNIC_SCRAP_FORMS = registerScrap("runic_scrap_forms", "forms", 4);
+    public static final DeferredItem<RunicScrapItem> RUNIC_SCRAP_MODIFIERS = registerScrap("runic_scrap_modifiers", "modifiers", 4);
+    public static final DeferredItem<RunicScrapItem> RUNIC_SCRAP_INSTABILITY = registerScrap("runic_scrap_instability", "instability", 4);
+    public static final DeferredItem<RunicScrapItem> RUNIC_SCRAP_SUPPRESSION = registerScrap("runic_scrap_suppression", "suppression", 4);
+    public static final DeferredItem<RunicScrapItem> RUNIC_SCRAP_FIRST_FORMULA = registerScrap("runic_scrap_first_formula", "first_formula", 5);
+    public static final DeferredItem<RunicScrapItem> RUNIC_SCRAP_FREE_CASTING = registerScrap("runic_scrap_free_casting", "free_casting", 4);
+
     public static final DeferredItem<RunicCodexItem> RUNIC_CODEX = ITEMS.register("runic_codex",
             () -> new RunicCodexItem(new Item.Properties().stacksTo(1)));
 
@@ -97,6 +107,15 @@ public final class RunicItems {
                     1,
                     ModRunicRunes.STABILISE_RUNE.getId()
             ));
+
+
+    private static DeferredItem<RunicScrapItem> registerScrap(String path, String scrapKey, int lineCount) {
+        return ITEMS.register(path, () -> new RunicScrapItem(
+                new Item.Properties().stacksTo(16),
+                "runic_ascension.runic.scrap." + scrapKey,
+                lineCount
+        ));
+    }
 
     private RunicItems() {
     }

@@ -23,7 +23,21 @@ public class RunicItemModelProvider extends ItemModelProvider {
         tomeItem(RunicItems.RUNIC_TOME_INTENTS.get());
         tomeItem(RunicItems.RUNIC_TOME_FORMS.get());
         tomeItem(RunicItems.RUNIC_TOME_MODIFIERS.get());
+        scrapItem(RunicItems.RUNIC_SCRAP_ORIGIN.get());
+        scrapItem(RunicItems.RUNIC_SCRAP_INTENT.get());
+        scrapItem(RunicItems.RUNIC_SCRAP_FORMS.get());
+        scrapItem(RunicItems.RUNIC_SCRAP_MODIFIERS.get());
+        scrapItem(RunicItems.RUNIC_SCRAP_INSTABILITY.get());
+        scrapItem(RunicItems.RUNIC_SCRAP_SUPPRESSION.get());
+        scrapItem(RunicItems.RUNIC_SCRAP_FIRST_FORMULA.get());
+        scrapItem(RunicItems.RUNIC_SCRAP_FREE_CASTING.get());
         basicItem(RunicItems.BASIC_RUNIC_BRUSH.get());
+    }
+
+
+    private ItemModelBuilder scrapItem(Item item) {
+        return withExistingParent(name(item), mcLoc("item/generated"))
+                .texture("layer0", modLoc("item/runic_scrap"));
     }
 
     private ItemModelBuilder tomeItem(Item item) {

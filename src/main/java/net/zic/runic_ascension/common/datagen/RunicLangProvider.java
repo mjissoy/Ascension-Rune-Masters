@@ -34,6 +34,73 @@ public class RunicLangProvider extends LanguageProvider {
         add("item.runic_ascension.runic_tome", "Runic Tome");
         add("item.runic_ascension.runic_codex", "Runic Codex");
         add("item.runic_ascension.basic_runic_brush", "Basic Runic Brush");
+
+        add("item.runic_ascension.runic_scrap_origin", "Runic Scrap: Origin");
+        add("item.runic_ascension.runic_scrap_intent", "Runic Scrap: Intent");
+        add("item.runic_ascension.runic_scrap_forms", "Runic Scrap: Forms");
+        add("item.runic_ascension.runic_scrap_modifiers", "Runic Scrap: Modifiers");
+        add("item.runic_ascension.runic_scrap_instability", "Runic Scrap: Instability");
+        add("item.runic_ascension.runic_scrap_suppression", "Runic Scrap: Suppression");
+        add("item.runic_ascension.runic_scrap_first_formula", "Runic Scrap: First Formula");
+        add("item.runic_ascension.runic_scrap_free_casting", "Runic Scrap: Free Casting");
+        add("runic_ascension.runic.scrap.tooltip.read", "Right-click to let the words settle in your mind.");
+
+        add("runic_ascension.runic.scrap.origin.title", "A Brittle Scrap on Origins");
+        add("runic_ascension.runic.scrap.origin.tooltip", "A torn lesson about where formulae begin.");
+        add("runic_ascension.runic.scrap.origin.line_1", "A formula begins where power takes its first breath.");
+        add("runic_ascension.runic.scrap.origin.line_2", "Flame, wind, earth, life and their kin are origins.");
+        add("runic_ascension.runic.scrap.origin.line_3", "An origin alone only wakes. It does not yet choose.");
+        add("runic_ascension.runic.scrap.origin.line_4", "Pair it with intent, and the script begins to move.");
+
+        add("runic_ascension.runic.scrap.intent.title", "A Brittle Scrap on Intent");
+        add("runic_ascension.runic.scrap.intent.tooltip", "A torn lesson about giving power a will.");
+        add("runic_ascension.runic.scrap.intent.line_1", "Intent is the desire carved into a sleeping origin.");
+        add("runic_ascension.runic.scrap.intent.line_2", "Cut divides, guard preserves, bind restrains, heal restores.");
+        add("runic_ascension.runic.scrap.intent.line_3", "Without intent, power pools like rain in an unmarked bowl.");
+        add("runic_ascension.runic.scrap.intent.line_4", "With intent, the rune remembers what it must become.");
+
+        add("runic_ascension.runic.scrap.forms.title", "A Brittle Scrap on Forms");
+        add("runic_ascension.runic.scrap.forms.tooltip", "A torn lesson about giving formulae a body.");
+        add("runic_ascension.runic.scrap.forms.line_1", "Form gives a formula its vessel.");
+        add("runic_ascension.runic.scrap.forms.line_2", "Bolt flies, line draws, wall stands, circle surrounds.");
+        add("runic_ascension.runic.scrap.forms.line_3", "The same origin and intent may change greatly by shape.");
+        add("runic_ascension.runic.scrap.forms.line_4", "A wise hand chooses the vessel before releasing the truth.");
+
+        add("runic_ascension.runic.scrap.modifiers.title", "A Brittle Scrap on Lesser Strokes");
+        add("runic_ascension.runic.scrap.modifiers.tooltip", "A torn lesson about modifiers and finishing strokes.");
+        add("runic_ascension.runic.scrap.modifiers.line_1", "Modifiers are lesser strokes, but lesser does not mean weak.");
+        add("runic_ascension.runic.scrap.modifiers.line_2", "Quicken hastens, stabilise steadies, heavy burdens, violent wounds.");
+        add("runic_ascension.runic.scrap.modifiers.line_3", "A modifier before the root makes the script stumble.");
+        add("runic_ascension.runic.scrap.modifiers.line_4", "Place the root first, then refine what it becomes.");
+
+        add("runic_ascension.runic.scrap.instability.title", "A Singed Scrap on Instability");
+        add("runic_ascension.runic.scrap.instability.tooltip", "A scorched warning about backlash.");
+        add("runic_ascension.runic.scrap.instability.line_1", "Some formulae obey while trembling.");
+        add("runic_ascension.runic.scrap.instability.line_2", "Violence, haste, depth and poor order all invite backlash.");
+        add("runic_ascension.runic.scrap.instability.line_3", "Stabilising strokes can quiet the quarrel, but may soften the result.");
+        add("runic_ascension.runic.scrap.instability.line_4", "A reckless rune master writes with blood when ink runs thin.");
+
+        add("runic_ascension.runic.scrap.suppression.title", "A Folded Scrap on Suppression");
+        add("runic_ascension.runic.scrap.suppression.tooltip", "A folded lesson about holding back a formula.");
+        add("runic_ascension.runic.scrap.suppression.line_1", "A higher script need not always descend in full.");
+        add("runic_ascension.runic.scrap.suppression.line_2", "Suppress the realm of a formula to spare qi and narrow its reach.");
+        add("runic_ascension.runic.scrap.suppression.line_3", "A small flame may light a path where a great one burns the forest.");
+        add("runic_ascension.runic.scrap.suppression.line_4", "Mastery teaches the hand how much truth to reveal.");
+
+        add("runic_ascension.runic.scrap.first_formula.title", "A Scrap Bearing a Simple Formula");
+        add("runic_ascension.runic.scrap.first_formula.tooltip", "A worn hint toward a beginner formula.");
+        add("runic_ascension.runic.scrap.first_formula.line_1", "Flame awakens. Cut gives hunger. Bolt gives path.");
+        add("runic_ascension.runic.scrap.first_formula.line_2", "Together they become a wound written in fire.");
+        add("runic_ascension.runic.scrap.first_formula.line_3", "Change bolt to line, and the wound becomes a drawn edge.");
+        add("runic_ascension.runic.scrap.first_formula.line_4", "Add violent, and power rises while stability falls.");
+        add("runic_ascension.runic.scrap.first_formula.line_5", "A first formula is not the answer, only a door.");
+
+        add("runic_ascension.runic.scrap.free_casting.title", "A Half-Remembered Scrap on Free Casting");
+        add("runic_ascension.runic.scrap.free_casting.tooltip", "A torn lesson about writing beyond memorised sequences.");
+        add("runic_ascension.runic.scrap.free_casting.line_1", "Recorded sequences are safe roads worn by older hands.");
+        add("runic_ascension.runic.scrap.free_casting.line_2", "Free formulae are roads written as you walk.");
+        add("runic_ascension.runic.scrap.free_casting.line_3", "Learn origins, wills, vessels and strokes, then test their grammar.");
+        add("runic_ascension.runic.scrap.free_casting.line_4", "When enough runes answer you, the Codex becomes a map instead of a cage.");
         add("runic_ascension.physiques.runic_testing", "Runic Testing Physique");
         add("runic_ascension.physiques.runic_testing.description.short", "A physique that awakens basic runic affinity.");
         add("runic_ascension.physiques.runic_testing.description", "A simple testing physique used to unlock and validate the Runic Path.");

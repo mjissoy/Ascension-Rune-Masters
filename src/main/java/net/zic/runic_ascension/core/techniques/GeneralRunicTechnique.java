@@ -18,6 +18,7 @@ public class GeneralRunicTechnique extends GenericTechnique {
                 5.0D,
                 Set.of()
         );
+        this.setStatChangeHandler(RunicStatHandlers.BASIC_RUNIC_HANDLER);
     }
 
     @Override
