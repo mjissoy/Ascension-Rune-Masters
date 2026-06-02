@@ -24,6 +24,7 @@ import java.util.List;
 public record OpenRunicCastingScreenPayload(
         int maxRuneSlots,
         int durationSeconds,
+        int runicRealm,
         List<ResourceLocation> usableRunes
 ) implements CustomPacketPayload {
 
@@ -43,6 +44,7 @@ public record OpenRunicCastingScreenPayload(
         PacketDistributor.sendToPlayer(player, new OpenRunicCastingScreenPayload(
                 RunicPathHelper.getRuneSlotCount(player, true),
                 RunicPathHelper.getCastingDurationSeconds(entityData),
+                RunicPathHelper.getRunicMajorRealm(entityData),
                 RunicPathHelper.getUsableKnownRunes(player)
         ));
     }
@@ -50,6 +52,7 @@ public record OpenRunicCastingScreenPayload(
     public static void encode(RegistryFriendlyByteBuf buf, OpenRunicCastingScreenPayload packet) {
         buf.writeInt(packet.maxRuneSlots);
         buf.writeInt(packet.durationSeconds);
+        buf.writeInt(packet.runicRealm);
         buf.writeInt(packet.usableRunes.size());
 
         for (ResourceLocation runeId : packet.usableRunes) {
@@ -60,6 +63,7 @@ public record OpenRunicCastingScreenPayload(
     public static OpenRunicCastingScreenPayload decode(RegistryFriendlyByteBuf buf) {
         int maxRuneSlots = buf.readInt();
         int durationSeconds = buf.readInt();
+        int runicRealm = buf.readInt();
         int runeCount = buf.readInt();
         List<ResourceLocation> usableRunes = new ArrayList<>();
 
@@ -67,7 +71,7 @@ public record OpenRunicCastingScreenPayload(
             usableRunes.add(ByteBufUtil.readResourceLocation(buf));
         }
 
-        return new OpenRunicCastingScreenPayload(maxRuneSlots, durationSeconds, usableRunes);
+        return new OpenRunicCastingScreenPayload(maxRuneSlots, durationSeconds, runicRealm, usableRunes);
     }
 
     @Override
@@ -78,13 +82,13 @@ public record OpenRunicCastingScreenPayload(
     public static void handlePayload(OpenRunicCastingScreenPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (FMLEnvironment.dist == Dist.CLIENT) {
-                open(payload.maxRuneSlots, payload.durationSeconds, payload.usableRunes);
+                open(payload.maxRuneSlots, payload.durationSeconds, payload.runicRealm, payload.usableRunes);
             }
         });
     }
 
     @OnlyIn(Dist.CLIENT)
-    private static void open(int maxRuneSlots, int durationSeconds, List<ResourceLocation> usableRunes) {
-        Minecraft.getInstance().setScreen(new RunicCastingScreen(maxRuneSlots, durationSeconds, usableRunes));
+    private static void open(int maxRuneSlots, int durationSeconds, int runicRealm, List<ResourceLocation> usableRunes) {
+        Minecraft.getInstance().setScreen(new RunicCastingScreen(maxRuneSlots, durationSeconds, runicRealm, usableRunes));
     }
 }

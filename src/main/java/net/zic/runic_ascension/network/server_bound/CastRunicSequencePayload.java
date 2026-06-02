@@ -16,7 +16,11 @@ import net.zic.runic_ascension.content.casting.RunicSequenceMatcher;
 import java.util.ArrayList;
 import java.util.List;
 
-public record CastRunicSequencePayload(List<ResourceLocation> runes) implements CustomPacketPayload {
+public record CastRunicSequencePayload(List<ResourceLocation> runes, int suppressionRealm) implements CustomPacketPayload {
+
+    public CastRunicSequencePayload(List<ResourceLocation> runes) {
+        this(runes, 0);
+    }
 
     public static final Type<CastRunicSequencePayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(RunicAscension.MOD_ID, "cast_runic_sequence"));
@@ -30,6 +34,8 @@ public record CastRunicSequencePayload(List<ResourceLocation> runes) implements 
         for (ResourceLocation runeId : packet.runes) {
             ByteBufUtil.encodeString(buf, runeId.toString());
         }
+
+        buf.writeInt(packet.suppressionRealm);
     }
 
     public static CastRunicSequencePayload decode(RegistryFriendlyByteBuf buf) {
@@ -40,7 +46,9 @@ public record CastRunicSequencePayload(List<ResourceLocation> runes) implements 
             runes.add(ByteBufUtil.readResourceLocation(buf));
         }
 
-        return new CastRunicSequencePayload(runes);
+        int suppressionRealm = buf.readInt();
+
+        return new CastRunicSequencePayload(runes, suppressionRealm);
     }
 
     @Override
@@ -54,7 +62,7 @@ public record CastRunicSequencePayload(List<ResourceLocation> runes) implements 
                 return;
             }
 
-            RunicCastingResult result = RunicSequenceMatcher.tryCast(player, payload.runes);
+            RunicCastingResult result = RunicSequenceMatcher.tryCast(player, payload.runes, payload.suppressionRealm);
 
             if (result.isSuccess()) {
                 player.displayClientMessage(

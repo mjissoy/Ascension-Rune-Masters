@@ -35,15 +35,24 @@ public class RunicCastingScreen extends EasyScreen {
     private final int maxRuneSlots;
     private final int durationSeconds;
     private EasyLabel selectedLabel;
+    private EasyLabel suppressionLabel;
+    private final int runicRealm;
+    private int selectedSuppressionRealm;
     private int remainingTicks;
     private boolean closingSafely;
 
 
     public RunicCastingScreen(int maxRuneSlots, int durationSeconds, List<ResourceLocation> usableRunes) {
+        this(maxRuneSlots, durationSeconds, 0, usableRunes);
+    }
+
+    public RunicCastingScreen(int maxRuneSlots, int durationSeconds, int runicRealm, List<ResourceLocation> usableRunes) {
         super(Component.translatable("runic_ascension.runic.casting.title"));
 
         this.maxRuneSlots = maxRuneSlots;
         this.durationSeconds = durationSeconds;
+        this.runicRealm = Math.max(0, runicRealm);
+        this.selectedSuppressionRealm = this.runicRealm <= 0 ? 0 : this.runicRealm;
         this.usableRunes = List.copyOf(usableRunes);
         this.remainingTicks = Math.max(0, durationSeconds * 20);
 
@@ -100,10 +109,10 @@ public class RunicCastingScreen extends EasyScreen {
 
         RunicPanel panel = new RunicPanel(frame);
         panel.setWidth(360);
-        panel.setHeight(230);
+        panel.setHeight(250);
         panel.getPositioning().setPositioningRule(PositioningRules.CENTER);
         panel.getPositioning().setX(-180);
-        panel.getPositioning().setY(-115);
+        panel.getPositioning().setY(-125);
         frame.setRoot(panel);
 
         EasyLabel title = label(frame, Component.translatable("runic_ascension.runic.casting.title"), 0, 8, 360, 12, 0xFFE8D8FF);
@@ -134,7 +143,7 @@ public class RunicCastingScreen extends EasyScreen {
         panel.addChild(selectedLabel);
         refreshSelectedLabel();
 
-        hoverBox = new RenderableElement(frame, 190, 51) {
+        hoverBox = new RenderableElement(frame, 190, 55) {
             @Override
             public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
                 guiGraphics.fill(0, 0, getWidth(), getHeight(), 0xCC12091F);
@@ -154,10 +163,11 @@ public class RunicCastingScreen extends EasyScreen {
         if (usableRunes.isEmpty()) {
             addEmptyState(panel, frame);
         } else {
+            addSuppressionControls(panel, frame);
             addRuneTabs(panel, frame);
         }
 
-        TextButton backspace = new TextButton(frame, 15, 195, 100, 18, Component.translatable("runic_ascension.runic.casting.backspace")) {
+        TextButton backspace = new TextButton(frame, 15, 220, 100, 18, Component.translatable("runic_ascension.runic.casting.backspace")) {
             @Override
             public void onClick() {
                 if (!selectedRunes.isEmpty()) {
@@ -168,7 +178,7 @@ public class RunicCastingScreen extends EasyScreen {
         };
         panel.addChild(backspace);
 
-        TextButton clear = new TextButton(frame, 130, 195, 100, 18, Component.translatable("runic_ascension.runic.casting.clear")) {
+        TextButton clear = new TextButton(frame, 130, 220, 100, 18, Component.translatable("runic_ascension.runic.casting.clear")) {
             @Override
             public void onClick() {
                 selectedRunes.clear();
@@ -180,7 +190,7 @@ public class RunicCastingScreen extends EasyScreen {
         TextButton cast = new TextButton(
                 frame,
                 245,
-                195,
+                220,
                 100,
                 18,
                 Component.translatable(usableRunes.isEmpty()
@@ -200,7 +210,7 @@ public class RunicCastingScreen extends EasyScreen {
                 }
 
                 closingSafely = true;
-                PacketDistributor.sendToServer(new CastRunicSequencePayload(List.copyOf(selectedRunes)));
+                PacketDistributor.sendToServer(new CastRunicSequencePayload(List.copyOf(selectedRunes), selectedSuppressionRealm));
                 Minecraft.getInstance().setScreen(null);
             }
         };
@@ -208,7 +218,7 @@ public class RunicCastingScreen extends EasyScreen {
     }
 
     private void addEmptyState(RenderableElement panel, UIFrame frame) {
-        RenderableElement emptyBox = new RenderableElement(frame, 42, 78) {
+        RenderableElement emptyBox = new RenderableElement(frame, 42, 90) {
             @Override
             public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
                 guiGraphics.fill(0, 0, getWidth(), getHeight(), 0x6612091F);
@@ -258,6 +268,64 @@ public class RunicCastingScreen extends EasyScreen {
         lineTwo.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
         lineTwo.setTextScale(0.75F);
         emptyBox.addChild(lineTwo);
+    }
+
+    private void addSuppressionControls(RenderableElement panel, UIFrame frame) {
+        TextButton lower = new TextButton(frame, 15, 69, 22, 16, Component.literal("-")) {
+            @Override
+            public void onClick() {
+                shiftSuppressionRealm(-1);
+            }
+        };
+        panel.addChild(lower);
+
+        suppressionLabel = label(
+                frame,
+                Component.empty(),
+                42,
+                69,
+                276,
+                16,
+                0xFFBEB4D7
+        );
+        suppressionLabel.setTextScale(0.75F);
+        suppressionLabel.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
+        panel.addChild(suppressionLabel);
+        refreshSuppressionLabel();
+
+        TextButton higher = new TextButton(frame, 323, 69, 22, 16, Component.literal("+")) {
+            @Override
+            public void onClick() {
+                shiftSuppressionRealm(1);
+            }
+        };
+        panel.addChild(higher);
+    }
+
+    private void shiftSuppressionRealm(int delta) {
+        if (runicRealm <= 1) {
+            return;
+        }
+
+        selectedSuppressionRealm = Math.max(1, Math.min(runicRealm, selectedSuppressionRealm + delta));
+        refreshSuppressionLabel();
+    }
+
+    private void refreshSuppressionLabel() {
+        if (suppressionLabel == null) {
+            return;
+        }
+
+        if (runicRealm <= 0) {
+            suppressionLabel.setText(Component.translatable("runic_ascension.runic.casting.suppression.none"));
+            return;
+        }
+
+        suppressionLabel.setText(Component.translatable(
+                "runic_ascension.runic.casting.suppression",
+                selectedSuppressionRealm,
+                runicRealm
+        ));
     }
 
     private void addRune(ResourceLocation runeId) {
@@ -528,7 +596,7 @@ private void addRuneTabs(RenderableElement panel, UIFrame frame) {
         TextButton tab = new TextButton(
                 frame,
                 tabX,
-                76,
+                92,
                 78,
                 16,
                 Component.literal(formatEnumName(type.name()))
@@ -543,7 +611,7 @@ private void addRuneTabs(RenderableElement panel, UIFrame frame) {
         panel.addChild(tab);
         tabX += 84;
 
-        RunicRuneScrollBox scrollBox = new RunicRuneScrollBox(frame, 15, 98, 330, 86);
+        RunicRuneScrollBox scrollBox = new RunicRuneScrollBox(frame, 15, 114, 330, 92);
         scrollBox.setVisible(type == activeRuneType);
         scrollBox.setActive(type == activeRuneType);
 

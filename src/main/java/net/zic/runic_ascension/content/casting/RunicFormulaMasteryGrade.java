@@ -40,7 +40,8 @@ public enum RunicFormulaMasteryGrade {
                 stats.durationMultiplier() * durationMultiplier,
                 stats.rangeMultiplier() * rangeMultiplier,
                 stats.qiCostMultiplier() * qiCostMultiplier,
-                stats.backlashMultiplier() * backlashMultiplier
+                stats.backlashMultiplier() * backlashMultiplier,
+                stats.stabilityMultiplier() / backlashMultiplier
         );
     }
 

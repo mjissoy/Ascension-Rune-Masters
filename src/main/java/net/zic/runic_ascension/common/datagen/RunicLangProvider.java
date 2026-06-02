@@ -148,6 +148,8 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.casting.title", "Runic Casting");
         add("runic_ascension.runic.casting.timer", "Time left: %ss");
         add("runic_ascension.runic.casting.info", "Slots: %s | Time: %ss");
+        add("runic_ascension.runic.casting.suppression", "Suppression: Realm %s / %s");
+        add("runic_ascension.runic.casting.suppression.none", "Suppression unavailable.");
         add("runic_ascension.runic.casting.selected.empty", "Selected: none");
         add("runic_ascension.runic.casting.backspace", "Back");
         add("runic_ascension.runic.casting.clear", "Clear");
@@ -163,6 +165,8 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.cast.unstable_modifiers", "The modifiers destabilise the formula.");
         add("runic_ascension.runic.cast.not_enough_qi", "You lack the qi to complete the formula.");
         add("runic_ascension.runic.cast.runes_do_not_align", "The runes do not align.");
+        add("runic_ascension.runic.cast.unstable_formula", "The unstable formula collapses into backlash.");
+        add("runic_ascension.runic.cast.unstable_formula_cast", "The formula trembles, but holds.");
         add("runic_ascension.runic.cast.failure", "The runes do not align.");
         add("runic_ascension.runic.cast.empty_sequence", "The script collapses before a formula can form.");
         add("runic_ascension.runic.cast.missing_core_runes", "A formula needs at least a source and an intent.");

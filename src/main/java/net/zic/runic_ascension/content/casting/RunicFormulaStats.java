@@ -5,6 +5,7 @@ public record RunicFormulaStats(
         float durationMultiplier,
         float rangeMultiplier,
         float qiCostMultiplier,
-        float backlashMultiplier
+        float backlashMultiplier,
+        float stabilityMultiplier
 ) {
 }

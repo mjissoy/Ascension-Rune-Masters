@@ -25,6 +25,7 @@ public final class RunicBacklashHelper {
             case "too_many_intents" -> Component.translatable("runic_ascension.runic.cast.too_many_intents");
             case "too_many_forms" -> Component.translatable("runic_ascension.runic.cast.too_many_forms");
             case "unstable_opening_modifier" -> Component.translatable("runic_ascension.runic.cast.unstable_opening_modifier");
+            case "unstable_formula" -> Component.translatable("runic_ascension.runic.cast.unstable_formula");
             case "not_enough_qi" -> Component.translatable("runic_ascension.runic.cast.not_enough_qi");
             case "formula_too_complex" -> Component.translatable("runic_ascension.runic.cast.formula_too_complex");
             case "rune_beyond_comprehension" -> Component.translatable("runic_ascension.runic.cast.rune_beyond_comprehension");

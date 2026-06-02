@@ -30,34 +30,45 @@ public final class RunicFormulaCaster {
     }
 
     public static RunicCastingResult tryCast(LivingEntity caster, List<net.minecraft.resources.ResourceLocation> inputRunes) {
+        return tryCast(caster, inputRunes, 0);
+    }
+
+    public static RunicCastingResult tryCast(
+            LivingEntity caster,
+            List<net.minecraft.resources.ResourceLocation> inputRunes,
+            int selectedSuppressionRealm
+    ) {
+        if (caster == null) {
+            return RunicCastingResult.failure("missing_caster");
+        }
+
         if (!(caster.level() instanceof ServerLevel level)) {
             return RunicCastingResult.failure("not_server_level");
         }
 
-        RunicFormula formula = RunicFormulaParser.parse(inputRunes);
+        RunicFormulaEvaluation evaluation = estimate(caster, inputRunes, selectedSuppressionRealm);
+        RunicFormula formula = evaluation.formula();
+        RunicFormulaStats stats = evaluation.stats();
 
-        if (!formula.isValid()) {
-            return RunicCastingResult.failure("invalid_formula");
+        if (formula == null || stats == null) {
+            return RunicCastingResult.failure(evaluation.failureReason());
         }
 
-
-
-        int runicRealm = RunicPathHelper.getRunicMajorRealm(caster);
-
-        RunicFormulaStats stats = RunicFormulaScaling.calculate(
-                formula,
-                caster,
-                runicRealm
-        );
-
-        RunicCastingResult validationResult = validateFormula(caster, formula, stats, runicRealm);
-
-        if (!validationResult.isSuccess()) {
-            applyFormulaBacklash(caster, formula, stats, validationResult.getFailureReason());
-            return RunicCastingResult.failure(validationResult.getFailureReason(), true);
+        if (evaluation.shouldBacklashImmediately()) {
+            applyFormulaBacklash(caster, formula, stats, evaluation.failureReason());
+            return RunicCastingResult.failure(evaluation.failureReason(), true);
         }
 
-        double qiCost = getFormulaQiCost(formula, stats);
+        if (!evaluation.canCast()) {
+            return RunicCastingResult.failure(evaluation.failureReason());
+        }
+
+        if (evaluation.isUnstable() && shouldUnstableFormulaCollapse(level, evaluation)) {
+            applyFormulaBacklash(caster, formula, stats, "unstable_formula");
+            return RunicCastingResult.failure("unstable_formula", true);
+        }
+
+        double qiCost = evaluation.qiCost();
 
         if (!tryConsumeFormulaQi(caster, qiCost)) {
             if (caster instanceof ServerPlayer player) {
@@ -81,7 +92,104 @@ public final class RunicFormulaCaster {
             default -> castBolt(level, caster, formula, stats);
         }
 
+        if (evaluation.isUnstable() && caster instanceof ServerPlayer player) {
+            player.displayClientMessage(getBacklashMessage("unstable_formula_cast"), true);
+        }
+
         return RunicCastingResult.success(formula.getFormulaId());
+    }
+
+    public static RunicFormulaEvaluation estimate(
+            LivingEntity caster,
+            List<net.minecraft.resources.ResourceLocation> inputRunes,
+            int selectedSuppressionRealm
+    ) {
+        RunicFormula formula = RunicFormulaParser.parse(inputRunes);
+        RunicCastingContext context = RunicCastingContext.create(caster, formula, selectedSuppressionRealm);
+        RunicFormulaStats stats = RunicFormulaScaling.calculate(formula, context);
+        double qiCost = getFormulaQiCost(formula, stats);
+        float stability = estimateStability(formula, stats);
+        context = context.withEstimates(qiCost, stability, stats.backlashMultiplier());
+
+        if (inputRunes == null || inputRunes.isEmpty()) {
+            return new RunicFormulaEvaluation(
+                    formula,
+                    context,
+                    stats,
+                    RunicCastingState.INVALID,
+                    "empty_sequence",
+                    qiCost,
+                    stability
+            );
+        }
+
+        if (!formula.isValid()) {
+            return new RunicFormulaEvaluation(
+                    formula,
+                    context,
+                    stats,
+                    RunicCastingState.INVALID,
+                    "missing_core_runes",
+                    qiCost,
+                    stability
+            );
+        }
+
+        RunicCastingResult validationResult = validateFormula(caster, formula, stats, context.actualRunicRealm());
+
+        if (!validationResult.isSuccess()) {
+            RunicCastingState state = stateForFailure(validationResult.getFailureReason(), stability);
+
+            return new RunicFormulaEvaluation(
+                    formula,
+                    context,
+                    stats,
+                    state,
+                    validationResult.getFailureReason(),
+                    qiCost,
+                    stability
+            );
+        }
+
+        RunicCastingState state = stability < 0.80F
+                ? RunicCastingState.UNSTABLE
+                : RunicCastingState.VALID;
+
+        return new RunicFormulaEvaluation(
+                formula,
+                context,
+                stats,
+                state,
+                state == RunicCastingState.UNSTABLE ? "unstable_formula" : "",
+                qiCost,
+                stability
+        );
+    }
+
+    private static float estimateStability(RunicFormula formula, RunicFormulaStats stats) {
+        float stability = stats.stabilityMultiplier();
+
+        if (formula.startsWithModifier()) {
+            stability -= 0.18F;
+        }
+
+        return Math.max(0.05F, stability);
+    }
+
+    private static RunicCastingState stateForFailure(String reason, float stability) {
+        return switch (reason) {
+            case "formula_too_complex", "rune_beyond_comprehension", "too_many_sources", "too_many_intents", "too_many_forms" ->
+                    RunicCastingState.OVERREACHED;
+            case "unstable_modifiers", "unstable_opening_modifier" ->
+                    stability >= 0.65F ? RunicCastingState.UNSTABLE : RunicCastingState.OVERREACHED;
+            default -> RunicCastingState.INVALID;
+        };
+    }
+
+    private static boolean shouldUnstableFormulaCollapse(ServerLevel level, RunicFormulaEvaluation evaluation) {
+        float instability = Math.max(0.0F, 1.0F - evaluation.stability());
+        float collapseChance = Math.min(0.75F, Math.max(0.05F, instability * evaluation.stats().backlashMultiplier()));
+        return level.random.nextFloat() < collapseChance;
     }
 
     private static void castVeil(ServerLevel level, LivingEntity caster, RunicFormula formula, RunicFormulaStats stats) {
@@ -437,6 +545,10 @@ public final class RunicFormulaCaster {
                     Component.translatable("runic_ascension.runic.cast.unstable_opening_modifier");
             case "not_enough_qi" ->
                     Component.translatable("runic_ascension.runic.cast.not_enough_qi");
+            case "unstable_formula" ->
+                    Component.translatable("runic_ascension.runic.cast.unstable_formula");
+            case "unstable_formula_cast" ->
+                    Component.translatable("runic_ascension.runic.cast.unstable_formula_cast");
             default ->
                     Component.translatable("runic_ascension.runic.cast.runes_do_not_align");
         };

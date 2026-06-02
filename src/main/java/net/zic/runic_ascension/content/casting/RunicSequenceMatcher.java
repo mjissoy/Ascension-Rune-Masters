@@ -20,13 +20,26 @@ public final class RunicSequenceMatcher {
     }
 
     public static RunicCastingResult tryCast(LivingEntity caster, List<ResourceLocation> inputRunes) {
-        return tryCast(caster, inputRunes, ModRunicSequences.values());
+        return tryCast(caster, inputRunes, 0);
+    }
+
+    public static RunicCastingResult tryCast(LivingEntity caster, List<ResourceLocation> inputRunes, int selectedSuppressionRealm) {
+        return tryCast(caster, inputRunes, ModRunicSequences.values(), selectedSuppressionRealm);
     }
 
     public static RunicCastingResult tryCast(
             LivingEntity caster,
             List<ResourceLocation> inputRunes,
             Collection<IRunicSequence> availableSequences
+    ) {
+        return tryCast(caster, inputRunes, availableSequences, 0);
+    }
+
+    public static RunicCastingResult tryCast(
+            LivingEntity caster,
+            List<ResourceLocation> inputRunes,
+            Collection<IRunicSequence> availableSequences,
+            int selectedSuppressionRealm
     ) {
         if (caster == null) {
             return RunicCastingResult.failure("missing_caster");
@@ -49,25 +62,25 @@ public final class RunicSequenceMatcher {
         int slotCount = RunicPathHelper.getRuneSlotCount(caster, true);
 
         if (inputRunes.size() > slotCount) {
-            return RunicCastingResult.failure("too_many_runes");
+            return RunicCastingResult.failure("formula_too_complex");
         }
 
         RunicPlayerData runicData = RunicPathHelper.getRunicData(caster);
 
         for (ResourceLocation runeId : inputRunes) {
             if (!runicData.knowsRune(runeId)) {
-                return RunicCastingResult.failure("unknown_rune:" + runeId);
+                return RunicCastingResult.failure("rune_beyond_comprehension");
             }
 
             if (!RunicPathHelper.canUseRune(entityData, runeId)) {
-                return RunicCastingResult.failure("rune_locked:" + runeId);
+                return RunicCastingResult.failure("rune_beyond_comprehension");
             }
         }
 
         IRunicSequence sequence = findMatchingSequence(inputRunes, availableSequences);
 
         if (sequence == null) {
-            RunicCastingResult formulaResult = RunicFormulaCaster.tryCast(caster, inputRunes);
+            RunicCastingResult formulaResult = RunicFormulaCaster.tryCast(caster, inputRunes, selectedSuppressionRealm);
 
             if (formulaResult.isSuccess()) {
                 runicData.recordFormulaCast(formulaResult.getSequenceId(), inputRunes);
