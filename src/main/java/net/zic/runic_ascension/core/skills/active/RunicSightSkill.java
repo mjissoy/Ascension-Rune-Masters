@@ -4,6 +4,7 @@ import net.lucent.easygui.gui.RenderableElement;
 import net.lucent.easygui.gui.UIFrame;
 import net.lucent.easygui.gui.textures.ITextureData;
 import net.lucent.easygui.gui.textures.TextureData;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -37,6 +38,8 @@ import net.zic.runic_ascension.RunicAscension;
 import net.zic.runic_ascension.content.RunicLearningState;
 import net.zic.runic_ascension.content.RunicPathHelper;
 import net.zic.runic_ascension.content.RunicPlayerData;
+import net.zic.runic_ascension.content.runes.IRunicRune;
+import net.zic.runic_ascension.content.runes.ModRunicRunes;
 import net.zic.runic_ascension.core.skills.data.EmptyRunicCastData;
 import net.zic.runic_ascension.core.skills.data.EmptyRunicPreCastData;
 
@@ -48,7 +51,7 @@ public class RunicSightSkill implements ICastableSkill {
     private static final double QI_COST = 4.0D;
     private static final double REACH = 12.0D;
     private static final int COOLDOWN_TICKS = 40;
-    private static final float OBSERVATION_GAIN = 0.25F;
+    private static final float BASE_OBSERVATION_GAIN = 0.20F;
 
     @Override
     public CastResult canCast(Entity caster, IPreCastData preCastData) {
@@ -85,30 +88,33 @@ public class RunicSightSkill implements ICastableSkill {
             return;
         }
 
-        List<ResourceLocation> seenRunes = findRunesInSight(player);
+        RunicSightScan scan = findRunesInSight(player, entityData);
 
-        if (seenRunes.isEmpty()) {
-            player.displayClientMessage(Component.literal("No runic traces found."), true);
+        if (scan.traces().isEmpty()) {
+            player.displayClientMessage(
+                    Component.translatable("runic_ascension.runic.sight.no_traces").withStyle(ChatFormatting.DARK_PURPLE),
+                    true
+            );
             return;
         }
 
         RunicPlayerData runicData = RunicPathHelper.getRunicData(player);
         List<ResourceLocation> newlyObserved = new ArrayList<>();
         List<ResourceLocation> glimpsed = new ArrayList<>();
+        List<ResourceLocation> alreadyClear = new ArrayList<>();
 
-        for (ResourceLocation runeId : seenRunes) {
-            if (!RunicPathHelper.canObserveRune(entityData, runeId)) {
-                continue;
-            }
-
+        for (RunicSightTrace trace : scan.readableTraces()) {
+            ResourceLocation runeId = trace.runeId();
             RunicLearningState state = runicData.getLearningState(runeId);
 
             if (state == RunicLearningState.KNOWN || state == RunicLearningState.OBSERVED) {
+                alreadyClear.add(runeId);
                 continue;
             }
 
             float oldProgress = runicData.getObservationProgress().getOrDefault(runeId, 0.0F);
-            float newProgress = Math.min(1.0F, oldProgress + OBSERVATION_GAIN);
+            float gain = getObservationGain(entityData, trace);
+            float newProgress = Math.min(1.0F, oldProgress + gain);
 
             runicData.addGlimpsedRune(runeId);
             runicData.setObservationProgress(runeId, newProgress);
@@ -120,10 +126,13 @@ public class RunicSightSkill implements ICastableSkill {
             }
         }
 
-        RunicPathHelper.saveRunicData(player, runicData);
+        if (!newlyObserved.isEmpty() || !glimpsed.isEmpty()) {
+            RunicPathHelper.saveRunicData(player, runicData);
+        }
 
         if (!newlyObserved.isEmpty()) {
             ResourceLocation first = newlyObserved.get(0);
+            Component firstName = runeName(first);
 
             PacketDistributor.sendToPlayer(player, new ShowAscensionToast(
                     "Rune Observed",
@@ -133,7 +142,7 @@ public class RunicSightSkill implements ICastableSkill {
             ));
 
             player.displayClientMessage(
-                    Component.literal("Observed: " + readableRuneName(first)),
+                    observedMessage(firstName, newlyObserved.size(), scan.veiledCount()),
                     true
             );
             return;
@@ -144,16 +153,35 @@ public class RunicSightSkill implements ICastableSkill {
             float progress = runicData.getObservationProgress().getOrDefault(first, 0.0F);
 
             player.displayClientMessage(
-                    Component.literal("Glimpsed: " + readableRuneName(first) + " " + (int) (progress * 100.0F) + "%"),
+                    glimpsedMessage(runeName(first), progress, glimpsed.size(), scan.veiledCount()),
                     true
             );
             return;
         }
 
-        player.displayClientMessage(Component.literal("The traces are too deep to read."), true);
+        if (scan.veiledCount() > 0 && alreadyClear.isEmpty()) {
+            player.displayClientMessage(
+                    Component.translatable("runic_ascension.runic.sight.too_deep", scan.veiledCount()).withStyle(ChatFormatting.DARK_PURPLE),
+                    true
+            );
+            return;
+        }
+
+        if (!alreadyClear.isEmpty()) {
+            player.displayClientMessage(
+                    Component.translatable("runic_ascension.runic.sight.already_clear", runeName(alreadyClear.get(0))).withStyle(ChatFormatting.LIGHT_PURPLE),
+                    true
+            );
+            return;
+        }
+
+        player.displayClientMessage(
+                Component.translatable("runic_ascension.runic.sight.no_readable_traces").withStyle(ChatFormatting.DARK_PURPLE),
+                true
+        );
     }
 
-    private List<ResourceLocation> findRunesInSight(ServerPlayer player) {
+    private RunicSightScan findRunesInSight(ServerPlayer player, IEntityData entityData) {
         Vec3 eyePosition = player.getEyePosition();
         Vec3 viewVector = player.getViewVector(1.0F);
         Vec3 endPosition = eyePosition.add(viewVector.scale(REACH));
@@ -180,16 +208,118 @@ public class RunicSightSkill implements ICastableSkill {
                     && eyePosition.distanceToSqr(blockHit.getLocation()) < eyePosition.distanceToSqr(entityHit.getLocation());
 
             if (!blockedByBlock) {
-                return RunicSightResolver.getRunesForEntity(entityHit.getEntity());
+                return buildScan(RunicSightResolver.getTracesForEntity(entityHit.getEntity()), entityData);
             }
         }
 
         if (blockHit instanceof BlockHitResult blockResult && blockHit.getType() != HitResult.Type.MISS) {
             BlockState state = player.level().getBlockState(blockResult.getBlockPos());
-            return RunicSightResolver.getRunesForBlock(state);
+            return buildScan(RunicSightResolver.getTracesForBlock(state), entityData);
         }
 
-        return List.of();
+        return RunicSightScan.empty();
+    }
+
+    private RunicSightScan buildScan(List<RunicSightTrace> traces, IEntityData entityData) {
+        List<RunicSightTrace> readable = new ArrayList<>();
+        int veiled = 0;
+
+        for (RunicSightTrace trace : traces) {
+            if (canReadTrace(entityData, trace)) {
+                readable.add(trace);
+            } else {
+                veiled++;
+            }
+        }
+
+        return new RunicSightScan(List.copyOf(traces), List.copyOf(readable), veiled);
+    }
+
+    private boolean canReadTrace(IEntityData entityData, RunicSightTrace trace) {
+        if (!RunicPathHelper.canObserveRune(entityData, trace.runeId())) {
+            return false;
+        }
+
+        int realm = RunicPathHelper.getRunicMajorRealm(entityData);
+        int layerRequirement = switch (trace.layer()) {
+            case SURFACE -> 0;
+            case DEEP -> 1;
+            case HIDDEN -> 3;
+        };
+
+        return realm >= layerRequirement;
+    }
+
+    private float getObservationGain(IEntityData entityData, RunicSightTrace trace) {
+        int realm = RunicPathHelper.getRunicMajorRealm(entityData);
+        IRunicRune rune = ModRunicRunes.get(trace.runeId());
+
+        float gain = BASE_OBSERVATION_GAIN + (Math.max(0, realm) * 0.025F);
+
+        if (rune != null) {
+            gain *= switch (rune.getDepth()) {
+                case SURFACE -> 1.0F;
+                case DEEP -> 0.85F;
+                case HIDDEN -> 0.65F;
+            };
+        }
+
+        gain *= Math.max(0.25F, trace.focusGainMultiplier());
+        return Math.max(0.08F, Math.min(0.50F, gain));
+    }
+
+    private Component observedMessage(Component firstName, int observedCount, int veiledCount) {
+        int extraObserved = Math.max(0, observedCount - 1);
+
+        if (veiledCount > 0) {
+            return Component.translatable(
+                    "runic_ascension.runic.sight.observed_with_veiled",
+                    firstName,
+                    extraObserved,
+                    veiledCount
+            ).withStyle(ChatFormatting.LIGHT_PURPLE);
+        }
+
+        if (extraObserved > 0) {
+            return Component.translatable(
+                    "runic_ascension.runic.sight.observed_extra",
+                    firstName,
+                    extraObserved
+            ).withStyle(ChatFormatting.LIGHT_PURPLE);
+        }
+
+        return Component.translatable("runic_ascension.runic.sight.observed", firstName).withStyle(ChatFormatting.LIGHT_PURPLE);
+    }
+
+    private Component glimpsedMessage(Component firstName, float progress, int glimpsedCount, int veiledCount) {
+        int progressPercent = Math.round(progress * 100.0F);
+        int extraGlimpsed = Math.max(0, glimpsedCount - 1);
+
+        if (veiledCount > 0) {
+            return Component.translatable(
+                    "runic_ascension.runic.sight.glimpsed_with_veiled",
+                    firstName,
+                    progressPercent,
+                    extraGlimpsed,
+                    veiledCount
+            ).withStyle(ChatFormatting.LIGHT_PURPLE);
+        }
+
+        if (extraGlimpsed > 0) {
+            return Component.translatable(
+                    "runic_ascension.runic.sight.glimpsed_extra",
+                    firstName,
+                    progressPercent,
+                    extraGlimpsed
+            ).withStyle(ChatFormatting.LIGHT_PURPLE);
+        }
+
+        return Component.translatable("runic_ascension.runic.sight.glimpsed", firstName, progressPercent).withStyle(ChatFormatting.LIGHT_PURPLE);
+    }
+
+    private Component runeName(ResourceLocation runeId) {
+        IRunicRune rune = ModRunicRunes.get(runeId);
+        return rune == null ? Component.literal(readableRuneName(runeId)) : rune.getName();
     }
 
     private String readableRuneName(ResourceLocation runeId) {
@@ -272,4 +402,14 @@ public class RunicSightSkill implements ICastableSkill {
     @Override public IPersistentSkillData freshPersistentData(IEntityData heldEntity) { return null; }
     @Override public IPersistentSkillData fromCompound(CompoundTag tag, IEntityData heldEntity) { return null; }
     @Override public IPersistentSkillData fromNetwork(RegistryFriendlyByteBuf buf) { return null; }
+
+    private record RunicSightScan(
+            List<RunicSightTrace> traces,
+            List<RunicSightTrace> readableTraces,
+            int veiledCount
+    ) {
+        private static RunicSightScan empty() {
+            return new RunicSightScan(List.of(), List.of(), 0);
+        }
+    }
 }

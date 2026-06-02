@@ -12,13 +12,12 @@ public class RunicStatHandlers {
     public static final ResourceLocation BASE_RUNIC_KEY =
             ResourceLocation.fromNamespaceAndPath(RunicAscension.MOD_ID, "base_runic");
 
-    public static BasicStatChangeHandler BASIC_RUNIC_HANDLER = new BasicStatChangeHandler()
+    public static final BasicStatChangeHandler BASIC_RUNIC_HANDLER = new BasicStatChangeHandler()
             .addMinorRealmStatModifier(ModStats.INTELLIGENCE.getId(), new ValueContainerModifier(3, ModifierOperation.ADD_BASE, BASE_RUNIC_KEY))
-            .addMinorRealmStatModifier(ModStats.VITALITY.getId(), new ValueContainerModifier(2, ModifierOperation.ADD_BASE, BASE_RUNIC_KEY))
-            .addMinorRealmStatModifier(ModStats.AGILITY.getId(), new ValueContainerModifier(1, ModifierOperation.ADD_BASE, BASE_RUNIC_KEY))
-            .addMajorRealmStatModifier(ModStats.INTELLIGENCE.getId(), new ValueContainerModifier(0.18, ModifierOperation.MULTIPLY_FINAL, BASE_RUNIC_KEY))
-            .addMajorRealmStatModifier(ModStats.VITALITY.getId(), new ValueContainerModifier(0.12, ModifierOperation.MULTIPLY_FINAL, BASE_RUNIC_KEY))
-            .addMajorRealmStatModifier(ModStats.AGILITY.getId(), new ValueContainerModifier(0.08, ModifierOperation.MULTIPLY_FINAL, BASE_RUNIC_KEY));
-
+            .addMinorRealmStatModifier(ModStats.VITALITY.getId(), new ValueContainerModifier(1.25, ModifierOperation.ADD_BASE, BASE_RUNIC_KEY))
+            .addMinorRealmStatModifier(ModStats.AGILITY.getId(), new ValueContainerModifier(1.25, ModifierOperation.ADD_BASE, BASE_RUNIC_KEY))
+            .addMajorRealmStatModifier(ModStats.INTELLIGENCE.getId(), new ValueContainerModifier(0.13, ModifierOperation.MULTIPLY_FINAL, BASE_RUNIC_KEY))
+            .addMajorRealmStatModifier(ModStats.VITALITY.getId(), new ValueContainerModifier(0.07, ModifierOperation.MULTIPLY_FINAL, BASE_RUNIC_KEY))
+            .addMajorRealmStatModifier(ModStats.AGILITY.getId(), new ValueContainerModifier(0.07, ModifierOperation.MULTIPLY_FINAL, BASE_RUNIC_KEY));
 
 }

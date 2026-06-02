@@ -283,6 +283,18 @@ public class RunicLangProvider extends LanguageProvider {
 
         add("runic_ascension.skill.runic_sight", "Runic Sight");
         add("runic_ascension.skill.runic_sight.description", "Opens the inner eye to glimpse runes hidden in nearby blocks and traces.");
+        add("runic_ascension.runic.sight.no_traces", "No runic traces answer your sight.");
+        add("runic_ascension.runic.sight.no_readable_traces", "The traces blur before their meaning can settle.");
+        add("runic_ascension.runic.sight.too_deep", "%s deeper stroke(s) resist your sight.");
+        add("runic_ascension.runic.sight.already_clear", "%s is already clear within your inner sight.");
+        add("runic_ascension.runic.sight.glimpsed", "%s sharpens within your mind: %s%%.");
+        add("runic_ascension.runic.sight.glimpsed_extra", "%s sharpens within your mind: %s%%. %s other trace(s) stir.");
+        add("runic_ascension.runic.sight.glimpsed_with_veiled", "%s sharpens: %s%%. %s other trace(s) stir; %s deeper stroke(s) remain veiled.");
+        add("runic_ascension.runic.sight.observed", "%s becomes clear within your inner sight.");
+        add("runic_ascension.runic.sight.observed_extra", "%s becomes clear. %s other rune(s) settle beside it.");
+        add("runic_ascension.runic.sight.observed_with_veiled", "%s becomes clear. %s other rune(s) settle; %s deeper stroke(s) remain veiled.");
+        add("runic_ascension.runic.sight.toast.title", "Rune Observed");
+        add("runic_ascension.runic.sight.toast.description", "%s has become clear.");
 
         add("runic_ascension.runic.casting.empty.title", "The script is silent.");
         add("runic_ascension.runic.casting.empty.line_1", "You do not know any usable runes yet.");
