@@ -20,8 +20,9 @@ sourceSets.main.resources {
 }
 
 repositories {
-
-
+    maven { url 'https://jitpack.io/' }
+    maven { url = "https://api.modrinth.com/maven" }
+    maven { url = "https://maven.theillusivec4.top/" }
 
 }
 
@@ -109,6 +110,17 @@ configurations {
 
 dependencies {
 
+    def localMods = files(
+            "libs/ascension-0.1.8.2.jar",
+            "libs/easy_gui-2.0.1.jar",
+            "libs/modopedia-neoforge-1.21.1-1.1.11.jar"
+    )
+
+    compileOnly localMods
+    localRuntime localMods
+
+    compileOnly "top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1"
+    localRuntime "top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1"
 
 
 }
