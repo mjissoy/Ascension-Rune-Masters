@@ -12,6 +12,10 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.zic.runic_ascension.content.casting.RunicEffectProfile;
+import net.zic.runic_ascension.content.casting.RunicFormula;
+import net.zic.runic_ascension.content.casting.RunicFormulaInterpreter;
+import net.zic.runic_ascension.content.casting.RunicFormulaParser;
 import net.zic.runic_ascension.content.runes.IRunicRune;
 import net.zic.runic_ascension.content.runes.ModRunicRunes;
 import net.zic.runic_ascension.content.runes.RunicRuneType;
@@ -35,6 +39,7 @@ public class RunicCastingScreen extends EasyScreen {
     private final int maxRuneSlots;
     private final int durationSeconds;
     private EasyLabel selectedLabel;
+    private EasyLabel previewLabel;
     private EasyLabel suppressionLabel;
     private final int runicRealm;
     private int selectedSuppressionRealm;
@@ -164,6 +169,7 @@ public class RunicCastingScreen extends EasyScreen {
             addEmptyState(panel, frame);
         } else {
             addSuppressionControls(panel, frame);
+            addFormulaPreview(panel, frame);
             addRuneTabs(panel, frame);
         }
 
@@ -302,6 +308,44 @@ public class RunicCastingScreen extends EasyScreen {
         panel.addChild(higher);
     }
 
+
+    private void addFormulaPreview(RenderableElement panel, UIFrame frame) {
+        previewLabel = label(
+                frame,
+                Component.translatable("runic_ascension.runic.casting.preview.empty"),
+                15,
+                86,
+                330,
+                9,
+                0xFF9D8BC7
+        );
+        previewLabel.setTextScale(0.65F);
+        previewLabel.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
+        panel.addChild(previewLabel);
+        refreshFormulaPreview();
+    }
+
+    private void refreshFormulaPreview() {
+        if (previewLabel == null) {
+            return;
+        }
+
+        if (selectedRunes.isEmpty()) {
+            previewLabel.setText(Component.translatable("runic_ascension.runic.casting.preview.empty"));
+            return;
+        }
+
+        RunicFormula formula = RunicFormulaParser.parse(selectedRunes);
+        RunicEffectProfile profile = RunicFormulaInterpreter.interpret(formula);
+
+        previewLabel.setText(Component.translatable(
+                "runic_ascension.runic.casting.preview",
+                profile.displayName(),
+                formatEnumName(profile.archetype().name()),
+                profile.flagsForDisplay()
+        ));
+    }
+
     private void shiftSuppressionRealm(int delta) {
         if (runicRealm <= 1) {
             return;
@@ -309,6 +353,7 @@ public class RunicCastingScreen extends EasyScreen {
 
         selectedSuppressionRealm = Math.max(1, Math.min(runicRealm, selectedSuppressionRealm + delta));
         refreshSuppressionLabel();
+        refreshFormulaPreview();
     }
 
     private void refreshSuppressionLabel() {
@@ -348,6 +393,7 @@ public class RunicCastingScreen extends EasyScreen {
                             ? "runic_ascension.runic.casting.selected.no_usable"
                             : "runic_ascension.runic.casting.selected.empty"
             ));
+            refreshFormulaPreview();
             return;
         }
 
@@ -362,6 +408,7 @@ public class RunicCastingScreen extends EasyScreen {
         }
 
         selectedLabel.setText(Component.literal(builder.toString()));
+        refreshFormulaPreview();
     }
 
     private static EasyLabel label(UIFrame frame, Component text, int x, int y, int width, int height, int color) {
@@ -596,7 +643,7 @@ private void addRuneTabs(RenderableElement panel, UIFrame frame) {
         TextButton tab = new TextButton(
                 frame,
                 tabX,
-                92,
+                98,
                 78,
                 16,
                 Component.literal(formatEnumName(type.name()))
@@ -611,7 +658,7 @@ private void addRuneTabs(RenderableElement panel, UIFrame frame) {
         panel.addChild(tab);
         tabX += 84;
 
-        RunicRuneScrollBox scrollBox = new RunicRuneScrollBox(frame, 15, 114, 330, 92);
+        RunicRuneScrollBox scrollBox = new RunicRuneScrollBox(frame, 15, 120, 330, 86);
         scrollBox.setVisible(type == activeRuneType);
         scrollBox.setActive(type == activeRuneType);
 

@@ -20,6 +20,7 @@ public final class RunicFormulaScaling {
         LivingEntity caster = context.caster();
         int effectiveRealm = context.effectiveRunicRealm();
         int actualRealm = context.actualRunicRealm();
+        RunicEffectProfile profile = RunicFormulaInterpreter.interpret(formula);
 
         float intelligence = getStat(caster, ModStats.INTELLIGENCE.get());
         float strength = getStat(caster, ModStats.STRENGTH.get());
@@ -134,6 +135,15 @@ public final class RunicFormulaScaling {
             backlash -= suppressionGap * 0.025F;
             stability += suppressionGap * 0.045F;
         }
+
+        // The profile is the semantic layer: it lets a Flame Cut Line scale
+        // differently from a Wind Cut Line even when their grammar shape matches.
+        damage *= profile.damageMultiplier();
+        duration *= profile.durationMultiplier();
+        range *= profile.rangeMultiplier();
+        qiCost *= profile.qiCostMultiplier();
+        backlash += profile.backlashModifier();
+        stability += profile.stabilityModifier();
 
         RunicFormulaStats stats = new RunicFormulaStats(
                 Math.max(0.5F, damage),

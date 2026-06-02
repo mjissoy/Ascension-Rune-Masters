@@ -151,6 +151,8 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.casting.suppression", "Suppression: Realm %s / %s");
         add("runic_ascension.runic.casting.suppression.none", "Suppression unavailable.");
         add("runic_ascension.runic.casting.selected.empty", "Selected: none");
+        add("runic_ascension.runic.casting.preview.empty", "Profile: waiting for a source and intent.");
+        add("runic_ascension.runic.casting.preview", "Profile: %s | %s | %s");
         add("runic_ascension.runic.casting.backspace", "Back");
         add("runic_ascension.runic.casting.clear", "Clear");
         add("runic_ascension.runic.casting.cast", "Cast");
@@ -160,20 +162,20 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.cast.no_usable_runes", "You do not know any usable runes.");
         add("runic_ascension.runic.cast.invalid_caster", "Invalid runic caster.");
 
-        add("runic_ascension.runic.cast.formula_too_complex", "The formula exceeds your current script capacity.");
-        add("runic_ascension.runic.cast.rune_beyond_comprehension", "One or more runes slip beyond your comprehension.");
-        add("runic_ascension.runic.cast.unstable_modifiers", "The modifiers destabilise the formula.");
-        add("runic_ascension.runic.cast.not_enough_qi", "You lack the qi to complete the formula.");
-        add("runic_ascension.runic.cast.runes_do_not_align", "The runes do not align.");
-        add("runic_ascension.runic.cast.unstable_formula", "The unstable formula collapses into backlash.");
-        add("runic_ascension.runic.cast.unstable_formula_cast", "The formula trembles, but holds.");
-        add("runic_ascension.runic.cast.failure", "The runes do not align.");
-        add("runic_ascension.runic.cast.empty_sequence", "The script collapses before a formula can form.");
-        add("runic_ascension.runic.cast.missing_core_runes", "A formula needs at least a source and an intent.");
-        add("runic_ascension.runic.cast.too_many_sources", "Too many sources fight for dominance.");
-        add("runic_ascension.runic.cast.too_many_intents", "Too many intents pull the formula apart.");
-        add("runic_ascension.runic.cast.too_many_forms", "Too many forms distort the script.");
-        add("runic_ascension.runic.cast.unstable_opening_modifier", "Opening with a modifier destabilises the formula.");
+        add("runic_ascension.runic.cast.formula_too_complex", "The script frays beyond the measure of your inner sea.");
+        add("runic_ascension.runic.cast.rune_beyond_comprehension", "A rune slips past your grasp, its meaning still veiled.");
+        add("runic_ascension.runic.cast.unstable_modifiers", "The lesser strokes quarrel, and the formula begins to shudder.");
+        add("runic_ascension.runic.cast.not_enough_qi", "Your qi thins before the final stroke can be sealed.");
+        add("runic_ascension.runic.cast.runes_do_not_align", "The runes refuse to share the same truth.");
+        add("runic_ascension.runic.cast.unstable_formula", "The trembling script breaks, and backlash answers.");
+        add("runic_ascension.runic.cast.unstable_formula_cast", "The formula trembles beneath your will, but obeys.");
+        add("runic_ascension.runic.cast.failure", "The runes scatter like forgotten names.");
+        add("runic_ascension.runic.cast.empty_sequence", "No truth is written, and the empty script collapses.");
+        add("runic_ascension.runic.cast.missing_core_runes", "A source must breathe, and an intent must guide it.");
+        add("runic_ascension.runic.cast.too_many_sources", "Too many origins awaken, each claiming the first breath.");
+        add("runic_ascension.runic.cast.too_many_intents", "Too many wills pull the script into contradiction.");
+        add("runic_ascension.runic.cast.too_many_forms", "Too many vessels twist the formula from shape into ruin.");
+        add("runic_ascension.runic.cast.unstable_opening_modifier", "A stray stroke opens the rite, and the script loses its root.");
 
         add("runic_ascension.bloodline.runic_tester_bloodline", "Runic Tester Bloodline");
         add("runic_ascension.bloodline.runic_tester_bloodline.short", "A testing bloodline with minor runic circulation benefits.");
