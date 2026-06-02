@@ -14,6 +14,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.zic.runic_ascension.content.casting.RunicEffectProfile;
 import net.zic.runic_ascension.content.casting.RunicFormula;
+import net.zic.runic_ascension.content.casting.RunicFormulaCaster;
+import net.zic.runic_ascension.content.casting.RunicFormulaEvaluation;
 import net.zic.runic_ascension.content.casting.RunicFormulaInterpreter;
 import net.zic.runic_ascension.content.casting.RunicFormulaParser;
 import net.zic.runic_ascension.content.runes.IRunicRune;
@@ -39,7 +41,9 @@ public class RunicCastingScreen extends EasyScreen {
     private final int maxRuneSlots;
     private final int durationSeconds;
     private EasyLabel selectedLabel;
-    private EasyLabel previewLabel;
+    private EasyLabel previewTitleLabel;
+    private EasyLabel previewStatsLabel;
+    private EasyLabel previewRiskLabel;
     private EasyLabel suppressionLabel;
     private final int runicRealm;
     private int selectedSuppressionRealm;
@@ -114,10 +118,10 @@ public class RunicCastingScreen extends EasyScreen {
 
         RunicPanel panel = new RunicPanel(frame);
         panel.setWidth(360);
-        panel.setHeight(250);
+        panel.setHeight(290);
         panel.getPositioning().setPositioningRule(PositioningRules.CENTER);
         panel.getPositioning().setX(-180);
-        panel.getPositioning().setY(-125);
+        panel.getPositioning().setY(-145);
         frame.setRoot(panel);
 
         EasyLabel title = label(frame, Component.translatable("runic_ascension.runic.casting.title"), 0, 8, 360, 12, 0xFFE8D8FF);
@@ -173,7 +177,7 @@ public class RunicCastingScreen extends EasyScreen {
             addRuneTabs(panel, frame);
         }
 
-        TextButton backspace = new TextButton(frame, 15, 220, 100, 18, Component.translatable("runic_ascension.runic.casting.backspace")) {
+        TextButton backspace = new TextButton(frame, 15, 260, 100, 18, Component.translatable("runic_ascension.runic.casting.backspace")) {
             @Override
             public void onClick() {
                 if (!selectedRunes.isEmpty()) {
@@ -184,7 +188,7 @@ public class RunicCastingScreen extends EasyScreen {
         };
         panel.addChild(backspace);
 
-        TextButton clear = new TextButton(frame, 130, 220, 100, 18, Component.translatable("runic_ascension.runic.casting.clear")) {
+        TextButton clear = new TextButton(frame, 130, 260, 100, 18, Component.translatable("runic_ascension.runic.casting.clear")) {
             @Override
             public void onClick() {
                 selectedRunes.clear();
@@ -196,7 +200,7 @@ public class RunicCastingScreen extends EasyScreen {
         TextButton cast = new TextButton(
                 frame,
                 245,
-                220,
+                260,
                 100,
                 18,
                 Component.translatable(usableRunes.isEmpty()
@@ -310,40 +314,258 @@ public class RunicCastingScreen extends EasyScreen {
 
 
     private void addFormulaPreview(RenderableElement panel, UIFrame frame) {
-        previewLabel = label(
+        RenderableElement previewBox = new RenderableElement(frame, 15, 88) {
+            @Override
+            public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+                guiGraphics.fill(0, 0, getWidth(), getHeight(), 0x6612091F);
+                guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), 0xAA7A5ACF);
+            }
+        };
+
+        previewBox.setWidth(330);
+        previewBox.setHeight(44);
+        panel.addChild(previewBox);
+
+        previewTitleLabel = label(
                 frame,
                 Component.translatable("runic_ascension.runic.casting.preview.empty"),
-                15,
-                86,
-                330,
-                9,
+                8,
+                4,
+                314,
+                10,
+                0xFFE8D8FF
+        );
+        previewTitleLabel.setTextScale(0.72F);
+        previewTitleLabel.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
+        previewBox.addChild(previewTitleLabel);
+
+        previewStatsLabel = label(
+                frame,
+                Component.empty(),
+                8,
+                17,
+                314,
+                10,
+                0xFFBEB4D7
+        );
+        previewStatsLabel.setTextScale(0.66F);
+        previewStatsLabel.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
+        previewBox.addChild(previewStatsLabel);
+
+        previewRiskLabel = label(
+                frame,
+                Component.empty(),
+                8,
+                30,
+                314,
+                10,
                 0xFF9D8BC7
         );
-        previewLabel.setTextScale(0.65F);
-        previewLabel.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        panel.addChild(previewLabel);
+        previewRiskLabel.setTextScale(0.66F);
+        previewRiskLabel.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
+        previewBox.addChild(previewRiskLabel);
+
         refreshFormulaPreview();
     }
 
     private void refreshFormulaPreview() {
-        if (previewLabel == null) {
+        if (previewTitleLabel == null || previewStatsLabel == null || previewRiskLabel == null) {
             return;
         }
 
         if (selectedRunes.isEmpty()) {
-            previewLabel.setText(Component.translatable("runic_ascension.runic.casting.preview.empty"));
+            previewTitleLabel.setText(Component.translatable("runic_ascension.runic.casting.preview.empty"));
+            previewStatsLabel.setText(Component.translatable("runic_ascension.runic.casting.preview.hint"));
+            previewRiskLabel.setText(Component.empty());
             return;
         }
 
         RunicFormula formula = RunicFormulaParser.parse(selectedRunes);
         RunicEffectProfile profile = RunicFormulaInterpreter.interpret(formula);
+        RunicFormulaEvaluation evaluation = estimateCurrentFormula();
+        int insightTier = getPreviewInsightTier();
 
-        previewLabel.setText(Component.translatable(
-                "runic_ascension.runic.casting.preview",
+        previewTitleLabel.setText(getPreviewTitle(profile, insightTier));
+
+        if (evaluation == null || evaluation.stats() == null) {
+            previewStatsLabel.setText(Component.translatable(
+                    "runic_ascension.runic.casting.preview.profile",
+                    profile.flagsForDisplay()
+            ));
+            previewRiskLabel.setText(Component.translatable("runic_ascension.runic.casting.preview.risk.unknown"));
+            return;
+        }
+
+        switch (insightTier) {
+            case 1 -> {
+                previewStatsLabel.setText(Component.translatable(
+                        "runic_ascension.runic.casting.preview.insight.low.stats",
+                        formatEnumName(profile.archetype().name())
+                ));
+                previewRiskLabel.setText(Component.translatable("runic_ascension.runic.casting.preview.insight.low.risk"));
+            }
+            case 2 -> {
+                previewStatsLabel.setText(Component.translatable(
+                        "runic_ascension.runic.casting.preview.insight.medium.stats",
+                        formatRuneWord(profile.sourcePath()),
+                        formatRuneWord(profile.intentPath()),
+                        formatRuneWord(profile.formPath())
+                ));
+                previewRiskLabel.setText(Component.translatable(
+                        "runic_ascension.runic.casting.preview.insight.medium.risk",
+                        previewStateName(evaluation)
+                ));
+            }
+            case 3 -> {
+                previewStatsLabel.setText(Component.translatable(
+                        "runic_ascension.runic.casting.preview.insight.high.stats",
+                        describeQiCost(evaluation.qiCost()),
+                        describeStability(evaluation.stability()),
+                        describeRange(evaluation.stats().rangeMultiplier())
+                ));
+                previewRiskLabel.setText(Component.translatable(
+                        "runic_ascension.runic.casting.preview.risk",
+                        previewStateName(evaluation),
+                        profile.flagsForDisplay()
+                ));
+            }
+            default -> {
+                previewStatsLabel.setText(Component.translatable(
+                        "runic_ascension.runic.casting.preview.stats",
+                        formatNumber(evaluation.qiCost()),
+                        formatPercent(evaluation.stability()),
+                        formatMultiplier(evaluation.stats().rangeMultiplier())
+                ));
+                previewRiskLabel.setText(Component.translatable(
+                        "runic_ascension.runic.casting.preview.risk",
+                        previewStateName(evaluation),
+                        profile.flagsForDisplay()
+                ));
+            }
+        }
+    }
+
+    private RunicFormulaEvaluation estimateCurrentFormula() {
+        if (Minecraft.getInstance().player == null) {
+            return null;
+        }
+
+        return RunicFormulaCaster.estimate(Minecraft.getInstance().player, selectedRunes, selectedSuppressionRealm);
+    }
+
+    /**
+     * Higher Runic realms can read more of the formula before it is cast.
+     * 1: only broad omens, 2: grammar pieces, 3: qualitative estimates, 4: exact estimates.
+     */
+    private int getPreviewInsightTier() {
+        if (runicRealm >= 7) {
+            return 4;
+        }
+
+        if (runicRealm >= 5) {
+            return 3;
+        }
+
+        if (runicRealm >= 3) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    private Component getPreviewTitle(RunicEffectProfile profile, int insightTier) {
+        if (insightTier <= 1) {
+            return Component.translatable(
+                    "runic_ascension.runic.casting.preview.insight.low.title",
+                    formatEnumName(profile.archetype().name())
+            );
+        }
+
+        return Component.translatable(
+                "runic_ascension.runic.casting.preview.title",
                 profile.displayName(),
-                formatEnumName(profile.archetype().name()),
-                profile.flagsForDisplay()
-        ));
+                formatEnumName(profile.archetype().name())
+        );
+    }
+
+    private Component previewStateName(RunicFormulaEvaluation evaluation) {
+        return switch (evaluation.state()) {
+            case VALID -> Component.translatable("runic_ascension.runic.casting.preview.state.valid");
+            case UNSTABLE -> Component.translatable("runic_ascension.runic.casting.preview.state.unstable");
+            case OVERREACHED -> Component.translatable("runic_ascension.runic.casting.preview.state.overreached");
+            case INVALID -> Component.translatable(
+                    "runic_ascension.runic.casting.preview.state.invalid",
+                    Component.translatable("runic_ascension.runic.cast." + evaluation.failureReason())
+            );
+        };
+    }
+
+    private static String describeQiCost(double qiCost) {
+        if (qiCost <= 20.0D) {
+            return "low";
+        }
+
+        if (qiCost <= 45.0D) {
+            return "moderate";
+        }
+
+        if (qiCost <= 80.0D) {
+            return "high";
+        }
+
+        return "severe";
+    }
+
+    private static String describeStability(float stability) {
+        if (stability >= 0.90F) {
+            return "steady";
+        }
+
+        if (stability >= 0.75F) {
+            return "wavering";
+        }
+
+        if (stability >= 0.55F) {
+            return "unstable";
+        }
+
+        return "fracturing";
+    }
+
+    private static String describeRange(float rangeMultiplier) {
+        if (rangeMultiplier < 0.85F) {
+            return "short";
+        }
+
+        if (rangeMultiplier <= 1.25F) {
+            return "normal";
+        }
+
+        if (rangeMultiplier <= 1.75F) {
+            return "long";
+        }
+
+        return "far-reaching";
+    }
+
+    private static String formatNumber(double value) {
+        return String.format("%.1f", value);
+    }
+
+    private static String formatPercent(float value) {
+        return Math.round(value * 100.0F) + "%";
+    }
+
+    private static String formatMultiplier(float value) {
+        return String.format("x%.2f", value);
+    }
+
+    private static String formatRuneWord(String path) {
+        if (path == null || path.isBlank() || path.equals("unknown")) {
+            return "?";
+        }
+
+        return formatEnumName(path);
     }
 
     private void shiftSuppressionRealm(int delta) {
@@ -643,7 +865,7 @@ private void addRuneTabs(RenderableElement panel, UIFrame frame) {
         TextButton tab = new TextButton(
                 frame,
                 tabX,
-                98,
+                140,
                 78,
                 16,
                 Component.literal(formatEnumName(type.name()))
@@ -658,7 +880,7 @@ private void addRuneTabs(RenderableElement panel, UIFrame frame) {
         panel.addChild(tab);
         tabX += 84;
 
-        RunicRuneScrollBox scrollBox = new RunicRuneScrollBox(frame, 15, 120, 330, 86);
+        RunicRuneScrollBox scrollBox = new RunicRuneScrollBox(frame, 15, 162, 330, 84);
         scrollBox.setVisible(type == activeRuneType);
         scrollBox.setActive(type == activeRuneType);
 
