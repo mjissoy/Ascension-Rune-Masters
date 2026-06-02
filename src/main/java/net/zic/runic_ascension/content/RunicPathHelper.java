@@ -14,6 +14,7 @@ import net.zic.runic_ascension.core.items.RunicBrushItem;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.ArrayList;
 
 public final class RunicPathHelper {
 
@@ -213,6 +214,34 @@ public final class RunicPathHelper {
         }
 
         if (learned > 0) {
+            saveRunicData(entity, data);
+        }
+
+        return learned;
+    }
+
+    public static List<ResourceLocation> learnRunesAndReturnNew(LivingEntity entity, Collection<ResourceLocation> runeIds) {
+        if (entity == null || runeIds == null || runeIds.isEmpty()) {
+            return List.of();
+        }
+
+        RunicPlayerData data = getRunicData(entity);
+        List<ResourceLocation> learned = new java.util.ArrayList<>();
+
+        for (ResourceLocation runeId : runeIds) {
+            if (ModRunicRunes.get(runeId) == null) {
+                continue;
+            }
+
+            if (data.knowsRune(runeId)) {
+                continue;
+            }
+
+            data.addKnownRune(runeId);
+            learned.add(runeId);
+        }
+
+        if (!learned.isEmpty()) {
             saveRunicData(entity, data);
         }
 

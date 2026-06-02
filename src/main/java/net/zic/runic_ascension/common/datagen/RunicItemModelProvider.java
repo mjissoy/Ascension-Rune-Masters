@@ -18,11 +18,12 @@ public class RunicItemModelProvider extends ItemModelProvider {
     protected void registerModels() {
         basicItem(RunicItems.RUNIC_CODEX.get());
         tomeItem(RunicItems.RUNIC_TOME.get());
-        tomeItem(RunicItems.RUNIC_TOME_BASE_ELEMENTS.get());
-        tomeItem(RunicItems.RUNIC_TOME_DEEP_ELEMENTS.get());
-        tomeItem(RunicItems.RUNIC_TOME_INTENTS.get());
-        tomeItem(RunicItems.RUNIC_TOME_FORMS.get());
-        tomeItem(RunicItems.RUNIC_TOME_MODIFIERS.get());
+        tomeItem(RunicItems.RUNIC_TOME_EMBER_BOLT.get());
+        tomeItem(RunicItems.RUNIC_TOME_STONE_WARD.get());
+        tomeItem(RunicItems.RUNIC_TOME_GENTLE_RENEWAL.get());
+        tomeItem(RunicItems.RUNIC_TOME_WIND_STEP.get());
+        tomeItem(RunicItems.RUNIC_TOME_FROST_BIND.get());
+        tomeItem(RunicItems.RUNIC_TOME_STORM_PIERCE.get());
         scrapItem(RunicItems.RUNIC_SCRAP_ORIGIN.get());
         scrapItem(RunicItems.RUNIC_SCRAP_INTENT.get());
         scrapItem(RunicItems.RUNIC_SCRAP_FORMS.get());

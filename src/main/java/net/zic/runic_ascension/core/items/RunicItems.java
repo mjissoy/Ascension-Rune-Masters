@@ -1,5 +1,6 @@
 package net.zic.runic_ascension.core.items;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -18,76 +19,83 @@ public final class RunicItems {
                     ModRunicRunes.allRuneIds()
             ));
 
-    public static final DeferredItem<RunicTomeItem> RUNIC_TOME_BASE_ELEMENTS = ITEMS.register("runic_tome_base_elements",
-            () -> new RunicTomeItem(
-                    new Item.Properties().stacksTo(1),
-                    List.of(
-                            ModRunicRunes.FLAME_RUNE.getId(),
-                            ModRunicRunes.WATER_RUNE.getId(),
-                            ModRunicRunes.WIND_RUNE.getId(),
-                            ModRunicRunes.EARTH_RUNE.getId()
-                    )
-            ));
+    public static final DeferredItem<RunicTomeItem> RUNIC_TOME_EMBER_BOLT = registerFormulaTome(
+            "runic_tome_ember_bolt",
+            "ember_bolt",
+            2,
+            3,
+            ModRunicRunes.FLAME_RUNE.getId(),
+            ModRunicRunes.CUT_RUNE.getId(),
+            ModRunicRunes.BOLT_RUNE.getId(),
+            ModRunicRunes.LINE_RUNE.getId(),
+            ModRunicRunes.VIOLENT_RUNE.getId(),
+            ModRunicRunes.STABILISE_RUNE.getId()
+    );
 
-    public static final DeferredItem<RunicTomeItem> RUNIC_TOME_DEEP_ELEMENTS = ITEMS.register("runic_tome_deep_elements",
-            () -> new RunicTomeItem(
-                    new Item.Properties().stacksTo(1),
-                    List.of(
-                            ModRunicRunes.WOOD_RUNE.getId(),
-                            ModRunicRunes.METAL_RUNE.getId(),
-                            ModRunicRunes.LIGHTNING_RUNE.getId(),
-                            ModRunicRunes.FROST_RUNE.getId(),
-                            ModRunicRunes.LIGHT_RUNE.getId(),
-                            ModRunicRunes.SHADOW_RUNE.getId(),
-                            ModRunicRunes.LIFE_RUNE.getId(),
-                            ModRunicRunes.DECAY_RUNE.getId()
-                    )
-            ));
+    public static final DeferredItem<RunicTomeItem> RUNIC_TOME_STONE_WARD = registerFormulaTome(
+            "runic_tome_stone_ward",
+            "stone_ward",
+            2,
+            3,
+            ModRunicRunes.EARTH_RUNE.getId(),
+            ModRunicRunes.GUARD_RUNE.getId(),
+            ModRunicRunes.WALL_RUNE.getId(),
+            ModRunicRunes.CIRCLE_RUNE.getId(),
+            ModRunicRunes.HEAVY_RUNE.getId(),
+            ModRunicRunes.STABILISE_RUNE.getId()
+    );
 
-    public static final DeferredItem<RunicTomeItem> RUNIC_TOME_INTENTS = ITEMS.register("runic_tome_intents",
-            () -> new RunicTomeItem(
-                    new Item.Properties().stacksTo(1),
-                    List.of(
-                            ModRunicRunes.BIND_RUNE.getId(),
-                            ModRunicRunes.PUSH_RUNE.getId(),
-                            ModRunicRunes.PULL_RUNE.getId(),
-                            ModRunicRunes.GUARD_RUNE.getId(),
-                            ModRunicRunes.CUT_RUNE.getId(),
-                            ModRunicRunes.HEAL_RUNE.getId(),
-                            ModRunicRunes.GATHER_RUNE.getId(),
-                            ModRunicRunes.RELEASE_RUNE.getId(),
-                            ModRunicRunes.COMPRESS_RUNE.getId(),
-                            ModRunicRunes.PIERCE_RUNE.getId()
-                    )
-            ));
+    public static final DeferredItem<RunicTomeItem> RUNIC_TOME_GENTLE_RENEWAL = registerFormulaTome(
+            "runic_tome_gentle_renewal",
+            "gentle_renewal",
+            2,
+            3,
+            ModRunicRunes.LIFE_RUNE.getId(),
+            ModRunicRunes.WATER_RUNE.getId(),
+            ModRunicRunes.HEAL_RUNE.getId(),
+            ModRunicRunes.CIRCLE_RUNE.getId(),
+            ModRunicRunes.VEIL_RUNE.getId(),
+            ModRunicRunes.STABILISE_RUNE.getId()
+    );
 
-    public static final DeferredItem<RunicTomeItem> RUNIC_TOME_FORMS = ITEMS.register("runic_tome_forms",
-            () -> new RunicTomeItem(
-                    new Item.Properties().stacksTo(1),
-                    List.of(
-                            ModRunicRunes.BOLT_RUNE.getId(),
-                            ModRunicRunes.VEIL_RUNE.getId(),
-                            ModRunicRunes.CIRCLE_RUNE.getId(),
-                            ModRunicRunes.MARK_RUNE.getId(),
-                            ModRunicRunes.WALL_RUNE.getId(),
-                            ModRunicRunes.PULSE_RUNE.getId(),
-                            ModRunicRunes.LINE_RUNE.getId(),
-                            ModRunicRunes.SPHERE_RUNE.getId()
-                    )
-            ));
+    public static final DeferredItem<RunicTomeItem> RUNIC_TOME_WIND_STEP = registerFormulaTome(
+            "runic_tome_wind_step",
+            "wind_step",
+            2,
+            3,
+            ModRunicRunes.WIND_RUNE.getId(),
+            ModRunicRunes.PUSH_RUNE.getId(),
+            ModRunicRunes.PULL_RUNE.getId(),
+            ModRunicRunes.PULSE_RUNE.getId(),
+            ModRunicRunes.VEIL_RUNE.getId(),
+            ModRunicRunes.QUICKEN_RUNE.getId()
+    );
 
-    public static final DeferredItem<RunicTomeItem> RUNIC_TOME_MODIFIERS = ITEMS.register("runic_tome_modifiers",
-            () -> new RunicTomeItem(
-                    new Item.Properties().stacksTo(1),
-                    List.of(
-                            ModRunicRunes.QUICKEN_RUNE.getId(),
-                            ModRunicRunes.STABILISE_RUNE.getId(),
-                            ModRunicRunes.HEAVY_RUNE.getId(),
-                            ModRunicRunes.VIOLENT_RUNE.getId(),
-                            ModRunicRunes.HIDDEN_RUNE.getId()
-                    )
-            ));
+    public static final DeferredItem<RunicTomeItem> RUNIC_TOME_FROST_BIND = registerFormulaTome(
+            "runic_tome_frost_bind",
+            "frost_bind",
+            2,
+            3,
+            ModRunicRunes.FROST_RUNE.getId(),
+            ModRunicRunes.WATER_RUNE.getId(),
+            ModRunicRunes.BIND_RUNE.getId(),
+            ModRunicRunes.CIRCLE_RUNE.getId(),
+            ModRunicRunes.MARK_RUNE.getId(),
+            ModRunicRunes.HEAVY_RUNE.getId()
+    );
 
+    public static final DeferredItem<RunicTomeItem> RUNIC_TOME_STORM_PIERCE = registerFormulaTome(
+            "runic_tome_storm_pierce",
+            "storm_pierce",
+            2,
+            3,
+            ModRunicRunes.LIGHTNING_RUNE.getId(),
+            ModRunicRunes.CUT_RUNE.getId(),
+            ModRunicRunes.PIERCE_RUNE.getId(),
+            ModRunicRunes.PULSE_RUNE.getId(),
+            ModRunicRunes.BOLT_RUNE.getId(),
+            ModRunicRunes.VIOLENT_RUNE.getId()
+    );
 
     public static final DeferredItem<RunicScrapItem> RUNIC_SCRAP_ORIGIN = registerScrap("runic_scrap_origin", "origin", 4);
     public static final DeferredItem<RunicScrapItem> RUNIC_SCRAP_INTENT = registerScrap("runic_scrap_intent", "intent", 4);
@@ -108,6 +116,21 @@ public final class RunicItems {
                     ModRunicRunes.STABILISE_RUNE.getId()
             ));
 
+    private static DeferredItem<RunicTomeItem> registerFormulaTome(
+            String path,
+            String formulaFamilyKey,
+            int minimumRuneGrants,
+            int maximumRuneGrants,
+            ResourceLocation... runePool
+    ) {
+        return ITEMS.register(path, () -> new RunicTomeItem(
+                new Item.Properties().stacksTo(1),
+                List.of(runePool),
+                minimumRuneGrants,
+                maximumRuneGrants,
+                formulaFamilyKey
+        ));
+    }
 
     private static DeferredItem<RunicScrapItem> registerScrap(String path, String scrapKey, int lineCount) {
         return ITEMS.register(path, () -> new RunicScrapItem(

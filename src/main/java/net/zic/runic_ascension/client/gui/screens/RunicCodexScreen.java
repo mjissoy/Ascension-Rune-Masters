@@ -13,7 +13,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.zic.runic_ascension.content.runes.IRunicRune;
 import net.zic.runic_ascension.content.runes.ModRunicRunes;
 import net.zic.runic_ascension.content.casting.RunicDiscoveredFormula;
+import net.zic.runic_ascension.content.casting.RunicEffectProfile;
+import net.zic.runic_ascension.content.casting.RunicFormula;
+import net.zic.runic_ascension.content.casting.RunicFormulaInterpreter;
 import net.zic.runic_ascension.content.casting.RunicFormulaMasteryGrade;
+import net.zic.runic_ascension.content.casting.RunicFormulaParser;
 import net.zic.runic_ascension.content.sequences.IRunicSequence;
 import net.zic.runic_ascension.content.sequences.ModRunicSequences;
 
@@ -24,10 +28,12 @@ import java.util.Map;
 public class RunicCodexScreen extends EasyScreen {
 
     private static final int PANEL_WIDTH = 420;
-    private static final int PANEL_HEIGHT = 260;
+    private static final int PANEL_HEIGHT = 300;
     private static final int RUNE_PAGE_SIZE = 9;
     private static final int SEQUENCE_PAGE_SIZE = 9;
     private static final int PAGE_CONTROL_Y = 178;
+    private static final int DETAIL_PANEL_Y = 194;
+    private static final int DETAIL_PANEL_HEIGHT = 88;
 
     private final List<ResourceLocation> knownRunes;
     private final List<ResourceLocation> discoveredSequences;
@@ -115,7 +121,7 @@ public class RunicCodexScreen extends EasyScreen {
         sequenceListContainer.setHeight(137);
         panel.addChild(sequenceListContainer);
 
-        detailContainer = new RenderableElement(frame, 22, 194) {
+        detailContainer = new RenderableElement(frame, 22, DETAIL_PANEL_Y) {
             @Override
             public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
                 guiGraphics.fill(0, 0, getWidth(), getHeight(), 0x44FFFFFF);
@@ -123,7 +129,7 @@ public class RunicCodexScreen extends EasyScreen {
             }
         };
         detailContainer.setWidth(376);
-        detailContainer.setHeight(52);
+        detailContainer.setHeight(DETAIL_PANEL_HEIGHT);
         panel.addChild(detailContainer);
 
         TextButton runePrev = new TextButton(frame, 22, PAGE_CONTROL_Y, 36, 10, Component.literal("<")) {
@@ -337,8 +343,12 @@ public class RunicCodexScreen extends EasyScreen {
     }
 
     private void addDetailLine(Component text, int y) {
-        EasyLabel line = label(getUIFrame(), text, 8, y, 360, 9, 0xFF3A203F);
-        line.setTextScale(0.7F);
+        addDetailLine(text, y, 0xFF3A203F);
+    }
+
+    private void addDetailLine(Component text, int y, int color) {
+        EasyLabel line = label(getUIFrame(), text, 8, y, 360, 9, color);
+        line.setTextScale(0.68F);
         detailContainer.addChild(line);
     }
 
@@ -507,7 +517,10 @@ public class RunicCodexScreen extends EasyScreen {
                 ? getFormulaRuneIds(formulaId)
                 : discoveredFormula.runes();
 
-        EasyLabel name = label(getUIFrame(), getFormulaName(runeIds), 8, 3, 220, 12, 0xFF2A162F);
+        RunicFormula formula = RunicFormulaParser.parse(runeIds);
+        RunicEffectProfile profile = RunicFormulaInterpreter.interpret(formula);
+
+        EasyLabel name = label(getUIFrame(), Component.literal(profile.displayName()), 8, 3, 240, 12, 0xFF2A162F);
         name.setTextScale(0.85F);
         detailContainer.addChild(name);
 
@@ -516,13 +529,38 @@ public class RunicCodexScreen extends EasyScreen {
                 ? RunicFormulaMasteryGrade.UNSTABLE
                 : discoveredFormula.getMasteryGrade();
 
-        addDetailLine(getFormulaDescription(runeIds), 16);
+        addDetailLine(Component.translatable(
+                "runic_ascension.runic.codex.formula_summary",
+                formatArchetype(profile),
+                formatProfilePath(profile.damageKind())
+        ), 16, 0xFF4A276F);
+
+        addDetailLine(Component.translatable(
+                "runic_ascension.runic.codex.formula_roles",
+                getPrimaryRuneName(formula.source()),
+                getPrimaryRuneName(formula.intent()),
+                getPrimaryRuneName(formula.form())
+        ), 28);
+
         addDetailLine(Component.translatable(
                 "runic_ascension.runic.codex.formula_mastery",
                 formatMasteryGrade(grade),
                 castCount
-        ), 28);
-        addDetailLine(Component.translatable("runic_ascension.runic.codex.formula_runes", formatRuneList(runeIds)), 40);
+        ), 40);
+
+        addDetailLine(Component.translatable(
+                "runic_ascension.runic.codex.formula_profile_numbers",
+                formatMultiplier(profile.damageMultiplier()),
+                formatMultiplier(profile.rangeMultiplier()),
+                formatSignedPercent(profile.stabilityModifier())
+        ), 52);
+
+        addDetailLine(Component.translatable(
+                "runic_ascension.runic.codex.formula_flags",
+                formatFlags(profile)
+        ), 64);
+
+        addDetailLine(Component.translatable("runic_ascension.runic.codex.formula_runes", formatRuneList(runeIds)), 76);
     }
 
 
@@ -552,7 +590,9 @@ public class RunicCodexScreen extends EasyScreen {
             return Component.translatable("runic_ascension.runic.codex.unknown_formula");
         }
 
-        return Component.translatable("runic_ascension.runic.codex.generated_formula_name", formatRuneListSpaced(runeIds));
+        RunicFormula formula = RunicFormulaParser.parse(runeIds);
+        RunicEffectProfile profile = RunicFormulaInterpreter.interpret(formula);
+        return Component.literal(profile.displayName());
     }
 
     private static String formatMasteryGrade(RunicFormulaMasteryGrade grade) {
@@ -563,6 +603,45 @@ public class RunicCodexScreen extends EasyScreen {
         }
 
         return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
+    }
+
+    private static Component getPrimaryRuneName(IRunicRune rune) {
+        return rune == null
+                ? Component.translatable("runic_ascension.runic.codex.none")
+                : rune.getName();
+    }
+
+    private static String formatArchetype(RunicEffectProfile profile) {
+        return formatEnumName(profile.archetype().name());
+    }
+
+    private static String formatProfilePath(String path) {
+        if (path == null || path.isBlank()) {
+            return "Runic";
+        }
+
+        return formatEnumName(path.replace('_', ' '));
+    }
+
+    private static String formatMultiplier(float value) {
+        return String.format(java.util.Locale.ROOT, "%.2fx", value);
+    }
+
+    private static String formatSignedPercent(float value) {
+        return String.format(java.util.Locale.ROOT, "%+d%%", Math.round(value * 100.0F));
+    }
+
+    private static String formatFlags(RunicEffectProfile profile) {
+        if (profile.flags().isEmpty()) {
+            return Component.translatable("runic_ascension.runic.codex.none").getString();
+        }
+
+        String joined = profile.flagsForDisplay();
+        if (joined.length() > 62) {
+            return joined.substring(0, 59) + "...";
+        }
+
+        return joined;
     }
 
     private static Component getFormulaDescription(List<ResourceLocation> runeIds) {

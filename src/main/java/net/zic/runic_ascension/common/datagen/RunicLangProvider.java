@@ -31,7 +31,13 @@ public class RunicLangProvider extends LanguageProvider {
         add("itemGroup.runic_ascension", "Ascension: Rune Masters");
 
         // Runic Path Things
-        add("item.runic_ascension.runic_tome", "Runic Tome");
+        add("item.runic_ascension.runic_tome", "Runic Tome: Complete Archive");
+        add("item.runic_ascension.runic_tome_ember_bolt", "Fragmented Tome: Ember Bolt");
+        add("item.runic_ascension.runic_tome_stone_ward", "Fragmented Tome: Stone Ward");
+        add("item.runic_ascension.runic_tome_gentle_renewal", "Fragmented Tome: Gentle Renewal");
+        add("item.runic_ascension.runic_tome_wind_step", "Fragmented Tome: Wind Step");
+        add("item.runic_ascension.runic_tome_frost_bind", "Fragmented Tome: Frost Bind");
+        add("item.runic_ascension.runic_tome_storm_pierce", "Fragmented Tome: Storm Pierce");
         add("item.runic_ascension.runic_codex", "Runic Codex");
         add("item.runic_ascension.basic_runic_brush", "Basic Runic Brush");
 
@@ -105,13 +111,20 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.physiques.runic_testing.description.short", "A physique that awakens basic runic affinity.");
         add("runic_ascension.physiques.runic_testing.description", "A simple testing physique used to unlock and validate the Runic Path.");
 
-        add("item.runic_ascension.runic_tome_base_elements", "Runic Tome: Base Elemental");
-        add("item.runic_ascension.runic_tome_deep_elements", "Runic Tome: Deep Elements");
-        add("item.runic_ascension.runic_tome_intents", "Runic Tome: Intents");
-        add("item.runic_ascension.runic_tome_forms", "Runic Tome: Forms");
-        add("item.runic_ascension.runic_tome_modifiers", "Runic Tome: Modifiers");
+        add("runic_ascension.runic.tome.complete_archive", "For §b§4[Admin]§r Usage Only");
+        add("runic_ascension.runic.tome.fragment_family", "Fragmented formula family:");
+        add("runic_ascension.runic.tome.reveals_range", "Each copy reveals %s-%s strokes when studied.");
+        add("runic_ascension.runic.tome.family.complete_archive", "Complete Archive");
+        add("runic_ascension.runic.tome.family.ember_bolt", "Ember Bolt Script");
+        add("runic_ascension.runic.tome.family.stone_ward", "Stone Ward Script");
+        add("runic_ascension.runic.tome.family.gentle_renewal", "Gentle Renewal Script");
+        add("runic_ascension.runic.tome.family.wind_step", "Wind Step Script");
+        add("runic_ascension.runic.tome.family.frost_bind", "Frost Binding Script");
+        add("runic_ascension.runic.tome.family.storm_pierce", "Storm-Piercing Script");
 
-        add("runic_ascension.runic.tome.teaches", "Teaches:");
+        add("runic_ascension.runic.tome.learned_named", "The rune(s) awaken in your mind: %s.");
+        add("runic_ascension.runic.tome.learned_named_with_veiled", "The rune(s) awaken: %s. %s deeper meaning(s) remain sealed.");
+        add("runic_ascension.runic.tome.learned_all_veiled", "%s hidden meaning(s) sink into your spirit, still sealed from sight.");
 
         add("runic_ascension.runic.casting.hover", "%s | %s | %s");
 
@@ -129,16 +142,21 @@ public class RunicLangProvider extends LanguageProvider {
 
         add("runic_ascension.runic.codex.not_on_path", "The codex remains shut. You have not entered the Runic Path.");
         add("runic_ascension.runic.codex.unknown", "Unknown");
+        add("runic_ascension.runic.codex.none", "None");
         add("runic_ascension.runic.codex.unknown_formula", "Unknown Formula");
         add("runic_ascension.runic.codex.generated_formula_name", "%s Formula");
         add("runic_ascension.runic.codex.generated_formula_desc", "A %s formula shaped from %s and guided by %s.");
         add("runic_ascension.runic.codex.formula_type", "Type: Discovered Formula");
+        add("runic_ascension.runic.codex.formula_summary", "Archetype: %s | Nature: %s");
+        add("runic_ascension.runic.codex.formula_roles", "Source: %s | Intent: %s | Form: %s");
         add("runic_ascension.runic.codex.formula_mastery", "Mastery: %s | Casts: %s");
+        add("runic_ascension.runic.codex.formula_profile_numbers", "Power: %s | Range: %s | Stability: %s");
+        add("runic_ascension.runic.codex.formula_flags", "Effects: %s");
         add("runic_ascension.runic.codex.formula_runes", "Formula: %s");
 
-        add("runic_ascension.runic.tome.not_on_path", "The runes remain silent. You have not entered the Runic Path.");
-        add("runic_ascension.runic.tome.no_new_runes", "This tome contains no new runes.");
-        add("runic_ascension.runic.tome.learned", "You learned %s runes.");
+        add("runic_ascension.runic.tome.not_on_path", "The script remains inert. You have not entered the Runic Path.");
+        add("runic_ascension.runic.tome.no_new_runes", "The tome echoes only signs you already know.");
+        add("runic_ascension.runic.tome.learned", "Knowledge solidifies around %s new rune(s).");
         add("runic_ascension.runic.sequence.cast", "You cast the sequence: %s");
 
         add("runic_ascension.runic.rune.flame", "Flame");

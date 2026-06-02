@@ -51,12 +51,12 @@ public class RunicScrapItem extends Item {
 
         player.sendSystemMessage(Component.literal(" "));
         player.sendSystemMessage(Component.translatable(translationBase + ".title")
-                .withStyle(ChatFormatting.LIGHT_PURPLE));
+                .withStyle(ChatFormatting.DARK_PURPLE));
 
         for (int i = 1; i <= lineCount; i++) {
             player.sendSystemMessage(Component.literal("  ")
                     .append(Component.translatable(translationBase + ".line_" + i)
-                            .withStyle(ChatFormatting.GRAY)));
+                            .withStyle(ChatFormatting.WHITE)));
         }
 
         return InteractionResultHolder.success(stack);

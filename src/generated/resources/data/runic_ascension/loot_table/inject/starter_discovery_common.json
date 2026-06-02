@@ -1,0 +1,62 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_scrap_origin",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_scrap_intent",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_scrap_forms",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_scrap_modifiers",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_scrap_instability",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_scrap_first_formula",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_tome_ember_bolt",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_tome_stone_ward",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_tome_gentle_renewal",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_tome_wind_step",
+          "weight": 2
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "runic_ascension:inject/starter_discovery_common"
+}

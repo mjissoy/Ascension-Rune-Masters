@@ -1,0 +1,11 @@
+{
+  "entries": [
+    "runic_ascension:add_runic_starter_discovery_to_simple_dungeon",
+    "runic_ascension:add_runic_starter_discovery_to_abandoned_mineshaft",
+    "runic_ascension:add_runic_starter_discovery_to_desert_pyramid",
+    "runic_ascension:add_runic_starter_discovery_to_jungle_temple",
+    "runic_ascension:add_runic_starter_discovery_to_stronghold_library",
+    "runic_ascension:add_runic_starter_discovery_to_ancient_city"
+  ],
+  "replace": false
+}

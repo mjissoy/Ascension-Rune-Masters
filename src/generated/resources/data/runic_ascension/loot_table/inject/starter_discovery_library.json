@@ -1,0 +1,56 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_scrap_free_casting",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_scrap_suppression",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_scrap_first_formula",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_tome_ember_bolt",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_tome_stone_ward",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_tome_gentle_renewal",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_tome_wind_step",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_tome_frost_bind",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_tome_storm_pierce"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "runic_ascension:inject/starter_discovery_library"
+}
