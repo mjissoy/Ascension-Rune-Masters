@@ -22,6 +22,7 @@ public class RunicPlayerData {
     private static final String KEY_OBSERVATION_PROGRESS = "observation_progress";
     private static final String KEY_DISCOVERED_SEQUENCES = "discovered_sequences";
     private static final String KEY_DISCOVERED_FORMULAS = "discovered_formulas";
+    private static final String KEY_DISCOVERED_SCRAPS = "discovered_scraps";
 
     private final Set<ResourceLocation> knownRunes = new HashSet<>();
     private final Set<ResourceLocation> observedRunes = new HashSet<>();
@@ -30,6 +31,7 @@ public class RunicPlayerData {
     private final Map<ResourceLocation, Float> observationProgress = new HashMap<>();
     private final Set<ResourceLocation> discoveredSequences = new HashSet<>();
     private final Map<ResourceLocation, RunicDiscoveredFormula> discoveredFormulas = new HashMap<>();
+    private final Set<String> discoveredScraps = new HashSet<>();
 
     public Set<ResourceLocation> getKnownRunes() {
         return knownRunes;
@@ -59,6 +61,10 @@ public class RunicPlayerData {
         return discoveredFormulas.values();
     }
 
+    public Set<String> getDiscoveredScraps() {
+        return discoveredScraps;
+    }
+
     public RunicDiscoveredFormula getDiscoveredFormula(ResourceLocation formulaId) {
         return discoveredFormulas.get(formulaId);
     }
@@ -73,6 +79,10 @@ public class RunicPlayerData {
 
     public boolean hasDiscoveredFormula(ResourceLocation formulaId) {
         return discoveredFormulas.containsKey(formulaId);
+    }
+
+    public boolean hasDiscoveredScrap(String scrapKey) {
+        return scrapKey != null && discoveredScraps.contains(scrapKey);
     }
 
     public RunicLearningState getLearningState(ResourceLocation runeId) {
@@ -124,6 +134,14 @@ public class RunicPlayerData {
         discoveredSequences.add(sequenceId);
     }
 
+    public boolean addDiscoveredScrap(String scrapKey) {
+        if (scrapKey == null || scrapKey.isBlank()) {
+            return false;
+        }
+
+        return discoveredScraps.add(scrapKey);
+    }
+
     /**
      * Records a successful flexible formula cast. The old discoveredSequences set is
      * still updated so older codex/list code can see the formula id, but the real
@@ -153,6 +171,7 @@ public class RunicPlayerData {
         tag.put(KEY_GLIMPSED_RUNES, writeIdSet(glimpsedRunes));
         tag.put(KEY_DISCOVERED_SEQUENCES, writeIdSet(discoveredSequences));
         tag.put(KEY_DISCOVERED_FORMULAS, writeDiscoveredFormulas());
+        tag.put(KEY_DISCOVERED_SCRAPS, writeStringSet(discoveredScraps));
 
         CompoundTag progressTag = new CompoundTag();
         observationProgress.forEach((id, progress) -> progressTag.putFloat(id.toString(), progress));
@@ -168,12 +187,14 @@ public class RunicPlayerData {
         observationProgress.clear();
         discoveredSequences.clear();
         discoveredFormulas.clear();
+        discoveredScraps.clear();
 
         readIdSet(tag, KEY_KNOWN_RUNES, knownRunes);
         readIdSet(tag, KEY_OBSERVED_RUNES, observedRunes);
         readIdSet(tag, KEY_GLIMPSED_RUNES, glimpsedRunes);
         readIdSet(tag, KEY_DISCOVERED_SEQUENCES, discoveredSequences);
         readDiscoveredFormulas(tag);
+        readStringSet(tag, KEY_DISCOVERED_SCRAPS, discoveredScraps);
 
         CompoundTag progressTag = tag.getCompound(KEY_OBSERVATION_PROGRESS);
 
@@ -227,6 +248,28 @@ public class RunicPlayerData {
 
             if (id != null) {
                 output.add(id);
+            }
+        }
+    }
+
+    private static ListTag writeStringSet(Set<String> values) {
+        ListTag list = new ListTag();
+
+        values.stream()
+                .sorted()
+                .forEach(value -> list.add(StringTag.valueOf(value)));
+
+        return list;
+    }
+
+    private static void readStringSet(CompoundTag tag, String key, Set<String> output) {
+        ListTag list = tag.getList(key, net.minecraft.nbt.Tag.TAG_STRING);
+
+        for (int i = 0; i < list.size(); i++) {
+            String value = list.getString(i);
+
+            if (!value.isBlank()) {
+                output.add(value);
             }
         }
     }

@@ -25,7 +25,9 @@ import java.util.List;
 public record OpenRunicCodexScreenPayload(
         List<ResourceLocation> knownRunes,
         List<ResourceLocation> discoveredSequences,
-        List<RunicDiscoveredFormula> discoveredFormulas
+        List<RunicDiscoveredFormula> discoveredFormulas,
+        List<String> discoveredScraps,
+        String focusedScrap
 ) implements CustomPacketPayload {
 
     public static final Type<OpenRunicCodexScreenPayload> TYPE =
@@ -38,9 +40,23 @@ public record OpenRunicCodexScreenPayload(
         knownRunes = knownRunes == null ? List.of() : List.copyOf(knownRunes);
         discoveredSequences = discoveredSequences == null ? List.of() : List.copyOf(discoveredSequences);
         discoveredFormulas = discoveredFormulas == null ? List.of() : List.copyOf(discoveredFormulas);
+        discoveredScraps = discoveredScraps == null ? List.of() : List.copyOf(discoveredScraps);
+        focusedScrap = focusedScrap == null ? "" : focusedScrap;
+    }
+
+    public OpenRunicCodexScreenPayload(
+            List<ResourceLocation> knownRunes,
+            List<ResourceLocation> discoveredSequences,
+            List<RunicDiscoveredFormula> discoveredFormulas
+    ) {
+        this(knownRunes, discoveredSequences, discoveredFormulas, List.of(), "");
     }
 
     public static void sendTo(ServerPlayer player) {
+        sendTo(player, "");
+    }
+
+    public static void sendTo(ServerPlayer player, String focusedScrap) {
         if (player == null) {
             return;
         }
@@ -59,10 +75,16 @@ public record OpenRunicCodexScreenPayload(
                 .sorted(Comparator.comparing(formula -> formula.formulaId().toString()))
                 .toList();
 
+        List<String> discoveredScraps = data.getDiscoveredScraps().stream()
+                .sorted()
+                .toList();
+
         PacketDistributor.sendToPlayer(player, new OpenRunicCodexScreenPayload(
                 knownRunes,
                 discoveredSequences,
-                discoveredFormulas
+                discoveredFormulas,
+                discoveredScraps,
+                focusedScrap
         ));
     }
 
@@ -70,14 +92,24 @@ public record OpenRunicCodexScreenPayload(
         writeResourceLocationList(buf, packet.knownRunes);
         writeResourceLocationList(buf, packet.discoveredSequences);
         writeFormulaList(buf, packet.discoveredFormulas);
+        writeStringList(buf, packet.discoveredScraps);
+        buf.writeUtf(packet.focusedScrap);
     }
 
     public static OpenRunicCodexScreenPayload decode(RegistryFriendlyByteBuf buf) {
         List<ResourceLocation> knownRunes = readResourceLocationList(buf);
         List<ResourceLocation> discoveredSequences = readResourceLocationList(buf);
         List<RunicDiscoveredFormula> discoveredFormulas = readFormulaList(buf);
+        List<String> discoveredScraps = readStringList(buf);
+        String focusedScrap = buf.readUtf();
 
-        return new OpenRunicCodexScreenPayload(knownRunes, discoveredSequences, discoveredFormulas);
+        return new OpenRunicCodexScreenPayload(
+                knownRunes,
+                discoveredSequences,
+                discoveredFormulas,
+                discoveredScraps,
+                focusedScrap
+        );
     }
 
     private static void writeResourceLocationList(RegistryFriendlyByteBuf buf, List<ResourceLocation> ids) {
@@ -118,6 +150,25 @@ public record OpenRunicCodexScreenPayload(
         return formulas;
     }
 
+    private static void writeStringList(RegistryFriendlyByteBuf buf, List<String> values) {
+        buf.writeInt(values.size());
+
+        for (String value : values) {
+            buf.writeUtf(value);
+        }
+    }
+
+    private static List<String> readStringList(RegistryFriendlyByteBuf buf) {
+        int size = buf.readInt();
+        List<String> values = new ArrayList<>();
+
+        for (int i = 0; i < size; i++) {
+            values.add(buf.readUtf());
+        }
+
+        return values;
+    }
+
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
@@ -126,7 +177,13 @@ public record OpenRunicCodexScreenPayload(
     public static void handlePayload(OpenRunicCodexScreenPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (FMLEnvironment.dist == Dist.CLIENT) {
-                open(payload.knownRunes, payload.discoveredSequences, payload.discoveredFormulas);
+                open(
+                        payload.knownRunes,
+                        payload.discoveredSequences,
+                        payload.discoveredFormulas,
+                        payload.discoveredScraps,
+                        payload.focusedScrap
+                );
             }
         });
     }
@@ -135,8 +192,16 @@ public record OpenRunicCodexScreenPayload(
     private static void open(
             List<ResourceLocation> knownRunes,
             List<ResourceLocation> discoveredSequences,
-            List<RunicDiscoveredFormula> discoveredFormulas
+            List<RunicDiscoveredFormula> discoveredFormulas,
+            List<String> discoveredScraps,
+            String focusedScrap
     ) {
-        Minecraft.getInstance().setScreen(new RunicCodexScreen(knownRunes, discoveredSequences, discoveredFormulas));
+        Minecraft.getInstance().setScreen(new RunicCodexScreen(
+                knownRunes,
+                discoveredSequences,
+                discoveredFormulas,
+                discoveredScraps,
+                focusedScrap
+        ));
     }
 }

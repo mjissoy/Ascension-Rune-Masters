@@ -2,7 +2,6 @@ package net.zic.runic_ascension.client.gui.screens;
 
 import net.lucent.easygui.gui.RenderableElement;
 import net.lucent.easygui.gui.UIFrame;
-import net.lucent.easygui.gui.elements.built_in.EasyButton;
 import net.lucent.easygui.gui.elements.built_in.EasyLabel;
 import net.lucent.easygui.gui.layout.positioning.rules.PositioningRules;
 import net.lucent.easygui.screen.EasyScreen;
@@ -12,6 +11,12 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.zic.runic_ascension.client.gui.elements.RunicGuiTheme;
+import net.zic.runic_ascension.client.gui.elements.RunicLabel;
+import net.zic.runic_ascension.client.gui.elements.RunicPanelElement;
+import net.zic.runic_ascension.client.gui.elements.RunicProgressBar;
+import net.zic.runic_ascension.client.gui.elements.RunicSlotElement;
+import net.zic.runic_ascension.client.gui.elements.RunicTextButton;
 import net.zic.runic_ascension.content.casting.RunicEffectProfile;
 import net.zic.runic_ascension.content.casting.RunicFormula;
 import net.zic.runic_ascension.content.casting.RunicFormulaCaster;
@@ -30,26 +35,33 @@ import java.util.Map;
 
 public class RunicCastingScreen extends EasyScreen {
 
+    private static final int PANEL_WIDTH = 456;
+    private static final int PANEL_HEIGHT = 326;
+    private static final int SLOT_SIZE = 24;
+    private static final int SLOT_GAP = 5;
+
     private final List<ResourceLocation> usableRunes;
     private final List<ResourceLocation> selectedRunes = new ArrayList<>();
     private final List<RuneButton> runeButtons = new ArrayList<>();
+    private final List<RunicSlotElement> slotElements = new ArrayList<>();
     private final Map<RunicRuneType, RunicRuneScrollBox> runeScrollBoxes = new EnumMap<>(RunicRuneType.class);
-    private final Map<RunicRuneType, TextButton> tabButtons = new EnumMap<>(RunicRuneType.class);
+    private final Map<RunicRuneType, RunicTextButton> tabButtons = new EnumMap<>(RunicRuneType.class);
+
     private RunicRuneType activeRuneType = RunicRuneType.SOURCE;
     private EasyLabel hoverLabel;
-    private RenderableElement hoverBox;
-    private final int maxRuneSlots;
-    private final int durationSeconds;
     private EasyLabel selectedLabel;
     private EasyLabel previewTitleLabel;
     private EasyLabel previewStatsLabel;
     private EasyLabel previewRiskLabel;
     private EasyLabel suppressionLabel;
+    private EasyLabel realmInfoLabel;
+
+    private final int maxRuneSlots;
+    private final int durationSeconds;
     private final int runicRealm;
     private int selectedSuppressionRealm;
     private int remainingTicks;
     private boolean closingSafely;
-
 
     public RunicCastingScreen(int maxRuneSlots, int durationSeconds, List<ResourceLocation> usableRunes) {
         this(maxRuneSlots, durationSeconds, 0, usableRunes);
@@ -58,12 +70,12 @@ public class RunicCastingScreen extends EasyScreen {
     public RunicCastingScreen(int maxRuneSlots, int durationSeconds, int runicRealm, List<ResourceLocation> usableRunes) {
         super(Component.translatable("runic_ascension.runic.casting.title"));
 
-        this.maxRuneSlots = maxRuneSlots;
-        this.durationSeconds = durationSeconds;
+        this.maxRuneSlots = Math.max(0, maxRuneSlots);
+        this.durationSeconds = Math.max(0, durationSeconds);
         this.runicRealm = Math.max(0, runicRealm);
         this.selectedSuppressionRealm = this.runicRealm <= 0 ? 0 : this.runicRealm;
-        this.usableRunes = List.copyOf(usableRunes);
-        this.remainingTicks = Math.max(0, durationSeconds * 20);
+        this.usableRunes = usableRunes == null ? List.of() : List.copyOf(usableRunes);
+        this.remainingTicks = this.durationSeconds * 20;
 
         build(getUIFrame());
     }
@@ -99,12 +111,12 @@ public class RunicCastingScreen extends EasyScreen {
         super.onClose();
     }
 
-    private float getTimerProgress() {
+    private double getTimerProgress() {
         if (durationSeconds <= 0) {
-            return 0.0F;
+            return 0.0D;
         }
 
-        return Math.max(0.0F, Math.min(1.0F, remainingTicks / (durationSeconds * 20.0F)));
+        return Math.max(0.0D, Math.min(1.0D, remainingTicks / (durationSeconds * 20.0D)));
     }
 
     private Component getTimerText() {
@@ -112,97 +124,206 @@ public class RunicCastingScreen extends EasyScreen {
         return Component.translatable("runic_ascension.runic.casting.timer", String.format("%.1f", secondsLeft));
     }
 
-
     private void build(UIFrame frame) {
         frame.setPauseGame(false);
 
-        RunicPanel panel = new RunicPanel(frame);
-        panel.setWidth(360);
-        panel.setHeight(290);
-        panel.getPositioning().setPositioningRule(PositioningRules.CENTER);
-        panel.getPositioning().setX(-180);
-        panel.getPositioning().setY(-145);
-        frame.setRoot(panel);
-
-        EasyLabel title = label(frame, Component.translatable("runic_ascension.runic.casting.title"), 0, 8, 360, 12, 0xFFE8D8FF);
-        title.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        panel.addChild(title);
-
-        EasyLabel info = label(
-                frame,
-                Component.translatable("runic_ascension.runic.casting.info", maxRuneSlots, durationSeconds),
-                0,
-                23,
-                360,
-                10,
-                0xFFBEB4D7
-        );
-        info.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        info.setTextScale(0.8F);
-        panel.addChild(info);
-
-        TimerBar timerBar = new TimerBar(frame, 15, 36, 330, 6);
-        panel.addChild(timerBar);
-
-        TimerLabel timerLabel = new TimerLabel(frame, 15, 42, 330, 10);
-        panel.addChild(timerLabel);
-
-        selectedLabel = label(frame, Component.empty(), 15, 53, 330, 14, 0xFFFFFFFF);
-        selectedLabel.setTextScale(0.85F);
-        panel.addChild(selectedLabel);
-        refreshSelectedLabel();
-
-        hoverBox = new RenderableElement(frame, 190, 55) {
+        RunicPanelElement panel = new RunicPanelElement(frame, 0, 0, PANEL_WIDTH, PANEL_HEIGHT, true, false) {
             @Override
-            public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-                guiGraphics.fill(0, 0, getWidth(), getHeight(), 0xCC12091F);
-                guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), 0xFFB79CFF);
+            public void renderTick(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+                refreshHoverLabel(findHoveredRune(mouseX, mouseY));
+                super.renderTick(guiGraphics, mouseX, mouseY, partialTick);
             }
         };
+        panel.getPositioning().setPositioningRule(PositioningRules.CENTER);
+        panel.getPositioning().setX(-PANEL_WIDTH / 2);
+        panel.getPositioning().setY(-PANEL_HEIGHT / 2);
+        frame.setRoot(panel);
 
-        hoverBox.setWidth(155);
-        hoverBox.setHeight(22);
-        hoverBox.setVisible(false);
-        panel.addChild(hoverBox);
+        RunicLabel title = new RunicLabel(frame, Component.translatable("runic_ascension.runic.casting.title"), 0, 4, PANEL_WIDTH, 14, RunicGuiTheme.TEXT_TITLE).centered().scaled(1.05F);
+        panel.addChild(title);
 
-        hoverLabel = label(frame, Component.empty(), 6, 5, 143, 10, 0xFFE8D8FF);
-        hoverLabel.setTextScale(0.75F);
-        hoverBox.addChild(hoverLabel);
+        panel.addChild(new RunicLabel(frame, Component.translatable("runic_ascension.runic.casting.info", maxRuneSlots, durationSeconds), 16, 25, 210, 10, RunicGuiTheme.TEXT_MUTED).scaled(0.75F));
+
+        TimerLabel timerLabel = new TimerLabel(frame, 302, 25, 138, 10);
+        panel.addChild(timerLabel);
+        panel.addChild(new RunicProgressBar(frame, 16, 38, 424, 6, this::getTimerProgress));
+
+        addSlotPanel(panel, frame);
 
         if (usableRunes.isEmpty()) {
             addEmptyState(panel, frame);
         } else {
-            addSuppressionControls(panel, frame);
-            addFormulaPreview(panel, frame);
-            addRuneTabs(panel, frame);
+            addRuneBrowser(panel, frame);
+            addSequenceInfoPanel(panel, frame);
         }
 
-        TextButton backspace = new TextButton(frame, 15, 260, 100, 18, Component.translatable("runic_ascension.runic.casting.backspace")) {
+        addControls(panel, frame);
+        refreshSelectedDisplay();
+    }
+
+    private void addSlotPanel(RenderableElement panel, UIFrame frame) {
+        RunicPanelElement slotPanel = new RunicPanelElement(frame, 16, 50, 424, 32);
+        panel.addChild(slotPanel);
+
+        selectedLabel = new RunicLabel(frame, Component.empty(), 8, 2, 120, 10, RunicGuiTheme.TEXT_MUTED).scaled(0.68F);
+        slotPanel.addChild(selectedLabel);
+
+        int totalWidth = maxRuneSlots * SLOT_SIZE + Math.max(0, maxRuneSlots - 1) * SLOT_GAP;
+        int startX = Math.max(132, 416 - totalWidth);
+
+        for (int i = 0; i < maxRuneSlots; i++) {
+            RunicSlotElement slot = new RunicSlotElement(frame, startX + i * (SLOT_SIZE + SLOT_GAP), 4, SLOT_SIZE, i);
+            slotElements.add(slot);
+            slotPanel.addChild(slot);
+        }
+    }
+
+    private void addRuneBrowser(RenderableElement panel, UIFrame frame) {
+        RunicPanelElement browser = new RunicPanelElement(frame, 16, 90, 262, 178);
+        panel.addChild(browser);
+
+        int tabX = 5;
+        int tabWidth = Math.max(54, (252 / Math.max(1, RunicRuneType.values().length)) - 4);
+
+        for (RunicRuneType type : RunicRuneType.values()) {
+            RunicTextButton tab = new RunicTextButton(frame, tabX, 5, tabWidth, 16, Component.literal(RunicGuiTheme.formatEnumName(type.name()))) {
+                @Override
+                protected boolean isSelected() {
+                    return activeRuneType == type;
+                }
+
+                @Override
+                public void onClick() {
+                    setActiveRuneType(type);
+                }
+            };
+
+            tabButtons.put(type, tab);
+            browser.addChild(tab);
+            tabX += tabWidth + 4;
+
+            RunicRuneScrollBox scrollBox = new RunicRuneScrollBox(frame, 5, 26, 252, 146);
+            scrollBox.setVisible(type == activeRuneType);
+            scrollBox.setActive(type == activeRuneType);
+            runeScrollBoxes.put(type, scrollBox);
+            browser.addChild(scrollBox);
+        }
+
+        for (ResourceLocation runeId : usableRunes) {
+            IRunicRune rune = ModRunicRunes.get(runeId);
+
+            if (rune == null) {
+                continue;
+            }
+
+            RunicRuneScrollBox scrollBox = runeScrollBoxes.get(rune.getType());
+
+            if (scrollBox == null) {
+                continue;
+            }
+
+            RuneButton runeButton = new RuneButton(frame, runeId, 0, 0, RunicRuneScrollBox.BUTTON_WIDTH, RunicRuneScrollBox.BUTTON_HEIGHT);
+            runeButtons.add(runeButton);
+            scrollBox.addChild(runeButton);
+        }
+
+        setActiveRuneType(activeRuneType);
+    }
+
+    private void addSequenceInfoPanel(RenderableElement panel, UIFrame frame) {
+        RunicPanelElement infoPanel = new RunicPanelElement(frame, 286, 90, 154, 178);
+        panel.addChild(infoPanel);
+
+        infoPanel.addChild(new RunicLabel(frame, Component.translatable("runic_ascension.runic.casting.sequence_panel.title"), 0, 5, 154, 10, RunicGuiTheme.TEXT_TITLE).centered().scaled(0.75F));
+
+        realmInfoLabel = new RunicLabel(frame, Component.translatable("runic_ascension.runic.casting.realm_info", runicRealm, getPreviewInsightTier()), 8, 20, 138, 10, RunicGuiTheme.TEXT_DIM).centered().scaled(0.62F);
+        infoPanel.addChild(realmInfoLabel);
+
+        addSuppressionControls(infoPanel, frame);
+        addFormulaPreview(infoPanel, frame);
+
+        RunicPanelElement hoverBox = new RunicPanelElement(frame, 8, 138, 138, 32);
+        infoPanel.addChild(hoverBox);
+
+        hoverLabel = new RunicLabel(frame, Component.translatable("runic_ascension.runic.casting.hover.empty"), 5, 4, 128, 24, RunicGuiTheme.TEXT_DIM).centered().scaled(0.62F);
+        hoverBox.addChild(hoverLabel);
+    }
+
+    private void addSuppressionControls(RenderableElement parent, UIFrame frame) {
+        RunicTextButton lower = new RunicTextButton(frame, 8, 34, 20, 15, Component.literal("-")) {
+            @Override
+            public void onClick() {
+                shiftSuppressionRealm(-1);
+            }
+        };
+        parent.addChild(lower);
+
+        suppressionLabel = new RunicLabel(frame, Component.empty(), 31, 34, 92, 15, RunicGuiTheme.TEXT_MUTED).centered().scaled(0.6F);
+        parent.addChild(suppressionLabel);
+        refreshSuppressionLabel();
+
+        RunicTextButton higher = new RunicTextButton(frame, 126, 34, 20, 15, Component.literal("+")) {
+            @Override
+            public void onClick() {
+                shiftSuppressionRealm(1);
+            }
+        };
+        parent.addChild(higher);
+    }
+
+    private void addFormulaPreview(RenderableElement parent, UIFrame frame) {
+        RunicPanelElement previewBox = new RunicPanelElement(frame, 8, 56, 138, 76);
+        parent.addChild(previewBox);
+
+        previewTitleLabel = new RunicLabel(frame, Component.translatable("runic_ascension.runic.casting.preview.empty"), 5, 4, 128, 16, RunicGuiTheme.TEXT_TITLE).centered().scaled(0.58F);
+        previewBox.addChild(previewTitleLabel);
+
+        previewStatsLabel = new RunicLabel(frame, Component.empty(), 5, 25, 128, 18, RunicGuiTheme.TEXT_MUTED).centered().scaled(0.55F);
+        previewBox.addChild(previewStatsLabel);
+
+        previewRiskLabel = new RunicLabel(frame, Component.empty(), 5, 49, 128, 18, RunicGuiTheme.TEXT_DIM).centered().scaled(0.55F);
+        previewBox.addChild(previewRiskLabel);
+
+        refreshFormulaPreview();
+    }
+
+    private void addEmptyState(RenderableElement panel, UIFrame frame) {
+        RunicPanelElement emptyBox = new RunicPanelElement(frame, 50, 104, 356, 112);
+        panel.addChild(emptyBox);
+
+        emptyBox.addChild(new RunicLabel(frame, Component.translatable("runic_ascension.runic.casting.empty.title"), 0, 14, 356, 14, RunicGuiTheme.TEXT_TITLE).centered().scaled(0.95F));
+        emptyBox.addChild(new RunicLabel(frame, Component.translatable("runic_ascension.runic.casting.empty.line_1"), 20, 43, 316, 11, RunicGuiTheme.TEXT_MUTED).centered().scaled(0.72F));
+        emptyBox.addChild(new RunicLabel(frame, Component.translatable("runic_ascension.runic.casting.empty.line_2"), 20, 62, 316, 11, RunicGuiTheme.TEXT_MUTED).centered().scaled(0.72F));
+        emptyBox.addChild(new RunicLabel(frame, Component.translatable("runic_ascension.runic.casting.empty.line_3"), 20, 81, 316, 11, RunicGuiTheme.TEXT_DIM).centered().scaled(0.68F));
+    }
+
+    private void addControls(RenderableElement panel, UIFrame frame) {
+        RunicTextButton backspace = new RunicTextButton(frame, 16, 288, 102, 20, Component.translatable("runic_ascension.runic.casting.backspace")) {
             @Override
             public void onClick() {
                 if (!selectedRunes.isEmpty()) {
                     selectedRunes.remove(selectedRunes.size() - 1);
-                    refreshSelectedLabel();
+                    refreshSelectedDisplay();
                 }
             }
         };
         panel.addChild(backspace);
 
-        TextButton clear = new TextButton(frame, 130, 260, 100, 18, Component.translatable("runic_ascension.runic.casting.clear")) {
+        RunicTextButton clear = new RunicTextButton(frame, 128, 288, 102, 20, Component.translatable("runic_ascension.runic.casting.clear")) {
             @Override
             public void onClick() {
                 selectedRunes.clear();
-                refreshSelectedLabel();
+                refreshSelectedDisplay();
             }
         };
         panel.addChild(clear);
 
-        TextButton cast = new TextButton(
+        RunicTextButton cast = new RunicTextButton(
                 frame,
-                245,
-                260,
-                100,
-                18,
+                338,
+                288,
+                102,
+                20,
                 Component.translatable(usableRunes.isEmpty()
                         ? "runic_ascension.runic.casting.close"
                         : "runic_ascension.runic.casting.cast")
@@ -227,145 +348,59 @@ public class RunicCastingScreen extends EasyScreen {
         panel.addChild(cast);
     }
 
-    private void addEmptyState(RenderableElement panel, UIFrame frame) {
-        RenderableElement emptyBox = new RenderableElement(frame, 42, 90) {
-            @Override
-            public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-                guiGraphics.fill(0, 0, getWidth(), getHeight(), 0x6612091F);
-                guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), 0xAA7A5ACF);
+    private ResourceLocation findHoveredRune(int mouseX, int mouseY) {
+        for (RuneButton button : runeButtons) {
+            IRunicRune rune = ModRunicRunes.get(button.runeId);
+
+            if (rune != null && rune.getType() == activeRuneType && button.isPointBounded(mouseX, mouseY)) {
+                return button.runeId;
             }
-        };
+        }
 
-        emptyBox.setWidth(276);
-        emptyBox.setHeight(78);
-        panel.addChild(emptyBox);
-
-        EasyLabel title = label(
-                frame,
-                Component.translatable("runic_ascension.runic.casting.empty.title"),
-                0,
-                10,
-                276,
-                12,
-                0xFFE8D8FF
-        );
-        title.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        title.setTextScale(0.9F);
-        emptyBox.addChild(title);
-
-        EasyLabel lineOne = label(
-                frame,
-                Component.translatable("runic_ascension.runic.casting.empty.line_1"),
-                12,
-                31,
-                252,
-                10,
-                0xFFBEB4D7
-        );
-        lineOne.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        lineOne.setTextScale(0.75F);
-        emptyBox.addChild(lineOne);
-
-        EasyLabel lineTwo = label(
-                frame,
-                Component.translatable("runic_ascension.runic.casting.empty.line_2"),
-                12,
-                46,
-                252,
-                10,
-                0xFFBEB4D7
-        );
-        lineTwo.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        lineTwo.setTextScale(0.75F);
-        emptyBox.addChild(lineTwo);
+        return null;
     }
 
-    private void addSuppressionControls(RenderableElement panel, UIFrame frame) {
-        TextButton lower = new TextButton(frame, 15, 69, 22, 16, Component.literal("-")) {
-            @Override
-            public void onClick() {
-                shiftSuppressionRealm(-1);
-            }
-        };
-        panel.addChild(lower);
+    private void addRune(ResourceLocation runeId) {
+        if (selectedRunes.size() >= maxRuneSlots) {
+            return;
+        }
 
-        suppressionLabel = label(
-                frame,
-                Component.empty(),
-                42,
-                69,
-                276,
-                16,
-                0xFFBEB4D7
-        );
-        suppressionLabel.setTextScale(0.75F);
-        suppressionLabel.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        panel.addChild(suppressionLabel);
-        refreshSuppressionLabel();
-
-        TextButton higher = new TextButton(frame, 323, 69, 22, 16, Component.literal("+")) {
-            @Override
-            public void onClick() {
-                shiftSuppressionRealm(1);
-            }
-        };
-        panel.addChild(higher);
+        selectedRunes.add(runeId);
+        refreshSelectedDisplay();
     }
 
-
-    private void addFormulaPreview(RenderableElement panel, UIFrame frame) {
-        RenderableElement previewBox = new RenderableElement(frame, 15, 88) {
-            @Override
-            public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-                guiGraphics.fill(0, 0, getWidth(), getHeight(), 0x6612091F);
-                guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), 0xAA7A5ACF);
-            }
-        };
-
-        previewBox.setWidth(330);
-        previewBox.setHeight(44);
-        panel.addChild(previewBox);
-
-        previewTitleLabel = label(
-                frame,
-                Component.translatable("runic_ascension.runic.casting.preview.empty"),
-                8,
-                4,
-                314,
-                10,
-                0xFFE8D8FF
-        );
-        previewTitleLabel.setTextScale(0.72F);
-        previewTitleLabel.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        previewBox.addChild(previewTitleLabel);
-
-        previewStatsLabel = label(
-                frame,
-                Component.empty(),
-                8,
-                17,
-                314,
-                10,
-                0xFFBEB4D7
-        );
-        previewStatsLabel.setTextScale(0.66F);
-        previewStatsLabel.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        previewBox.addChild(previewStatsLabel);
-
-        previewRiskLabel = label(
-                frame,
-                Component.empty(),
-                8,
-                30,
-                314,
-                10,
-                0xFF9D8BC7
-        );
-        previewRiskLabel.setTextScale(0.66F);
-        previewRiskLabel.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        previewBox.addChild(previewRiskLabel);
-
+    private void refreshSelectedDisplay() {
+        refreshSelectedLabel();
+        refreshSelectedSlots();
         refreshFormulaPreview();
+    }
+
+    private void refreshSelectedLabel() {
+        if (selectedLabel == null) {
+            return;
+        }
+
+        if (selectedRunes.isEmpty()) {
+            selectedLabel.setText(Component.translatable(
+                    usableRunes.isEmpty()
+                            ? "runic_ascension.runic.casting.selected.no_usable"
+                            : "runic_ascension.runic.casting.selected.empty"
+            ));
+            return;
+        }
+
+        selectedLabel.setText(Component.translatable("runic_ascension.runic.casting.selected.count", selectedRunes.size(), maxRuneSlots));
+    }
+
+    private void refreshSelectedSlots() {
+        for (int i = 0; i < slotElements.size(); i++) {
+            RunicSlotElement slot = slotElements.get(i);
+            if (i < selectedRunes.size()) {
+                slot.setRuneName(getRuneName(selectedRunes.get(i)));
+            } else {
+                slot.setRuneName(null);
+            }
+        }
     }
 
     private void refreshFormulaPreview() {
@@ -400,7 +435,7 @@ public class RunicCastingScreen extends EasyScreen {
             case 1 -> {
                 previewStatsLabel.setText(Component.translatable(
                         "runic_ascension.runic.casting.preview.insight.low.stats",
-                        formatEnumName(profile.archetype().name())
+                        RunicGuiTheme.formatEnumName(profile.archetype().name())
                 ));
                 previewRiskLabel.setText(getPreviewRiskWithOptionalBrush(
                         "runic_ascension.runic.casting.preview.insight.low.risk",
@@ -490,14 +525,14 @@ public class RunicCastingScreen extends EasyScreen {
         if (insightTier <= 1) {
             return Component.translatable(
                     "runic_ascension.runic.casting.preview.insight.low.title",
-                    formatEnumName(profile.archetype().name())
+                    RunicGuiTheme.formatEnumName(profile.archetype().name())
             );
         }
 
         return Component.translatable(
                 "runic_ascension.runic.casting.preview.title",
                 profile.displayName(),
-                formatEnumName(profile.archetype().name())
+                RunicGuiTheme.formatEnumName(profile.archetype().name())
         );
     }
 
@@ -618,7 +653,7 @@ public class RunicCastingScreen extends EasyScreen {
             return "?";
         }
 
-        return formatEnumName(path);
+        return RunicGuiTheme.formatEnumName(path);
     }
 
     private void shiftSuppressionRealm(int delta) {
@@ -642,69 +677,57 @@ public class RunicCastingScreen extends EasyScreen {
         }
 
         suppressionLabel.setText(Component.translatable(
-                "runic_ascension.runic.casting.suppression",
+                "runic_ascension.runic.casting.suppression.short",
                 selectedSuppressionRealm,
                 runicRealm
         ));
     }
 
-    private void addRune(ResourceLocation runeId) {
-        if (selectedRunes.size() >= maxRuneSlots) {
+    private void refreshHoverLabel(ResourceLocation hoveredRune) {
+        if (hoverLabel == null) {
             return;
         }
 
-        selectedRunes.add(runeId);
-        refreshSelectedLabel();
-    }
-
-    private void refreshSelectedLabel() {
-        if (selectedLabel == null) {
+        if (hoveredRune == null) {
+            hoverLabel.setText(Component.translatable("runic_ascension.runic.casting.hover.empty"));
             return;
         }
 
-        if (selectedRunes.isEmpty()) {
-            selectedLabel.setText(Component.translatable(
-                    usableRunes.isEmpty()
-                            ? "runic_ascension.runic.casting.selected.no_usable"
-                            : "runic_ascension.runic.casting.selected.empty"
-            ));
-            refreshFormulaPreview();
+        IRunicRune rune = ModRunicRunes.get(hoveredRune);
+
+        if (rune == null) {
+            hoverLabel.setText(Component.literal(hoveredRune.toString()));
             return;
         }
 
-        StringBuilder builder = new StringBuilder();
+        hoverLabel.setText(Component.translatable(
+                "runic_ascension.runic.casting.hover",
+                rune.getName(),
+                RunicGuiTheme.formatEnumName(rune.getType().name()),
+                RunicGuiTheme.formatEnumName(rune.getDepth().name())
+        ));
+    }
 
-        for (int i = 0; i < selectedRunes.size(); i++) {
-            if (i > 0) {
-                builder.append("  >  ");
-            }
+    private void setActiveRuneType(RunicRuneType type) {
+        activeRuneType = type;
 
-            builder.append(selectedRunes.get(i).getPath());
+        for (Map.Entry<RunicRuneType, RunicRuneScrollBox> entry : runeScrollBoxes.entrySet()) {
+            boolean active = entry.getKey() == type;
+            entry.getValue().setVisible(active);
+            entry.getValue().setActive(active);
         }
-
-        selectedLabel.setText(Component.literal(builder.toString()));
-        refreshFormulaPreview();
     }
 
-    private static EasyLabel label(UIFrame frame, Component text, int x, int y, int width, int height, int color) {
-        EasyLabel label = new EasyLabel(frame);
-        label.setText(text);
-        label.setTextColor(color);
-        label.setWidth(width);
-        label.setHeight(height);
-        label.getPositioning().setX(x);
-        label.getPositioning().setY(y);
-        label.setScaleToFit(true);
-        label.setTextPositioningY(EasyLabel.TextPositionRule.CENTER);
-        return label;
+    private static Component getRuneName(ResourceLocation runeId) {
+        IRunicRune rune = ModRunicRunes.get(runeId);
+        return rune == null ? Component.literal(runeId.getPath()) : rune.getName();
     }
-
 
     private static class RunicRuneScrollBox extends ScrollBox {
-        private static final int BUTTON_WIDTH = 78;
+        private static final int BUTTON_WIDTH = 76;
         private static final int BUTTON_HEIGHT = 16;
         private static final int GAP = 6;
-        private static final int COLUMNS = 4;
+        private static final int COLUMNS = 3;
         private static final int ROW_HEIGHT = BUTTON_HEIGHT + GAP;
 
         private RunicRuneScrollBox(UIFrame frame, int x, int y, int width, int height) {
@@ -748,12 +771,12 @@ public class RunicCastingScreen extends EasyScreen {
 
         @Override
         public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            guiGraphics.fill(0, 0, getWidth(), getHeight(), 0x6612091F);
-            guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), 0xAA7A5ACF);
+            guiGraphics.fill(0, 0, getWidth(), getHeight(), RunicGuiTheme.PANEL_SOFT);
+            guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), RunicGuiTheme.BORDER_DARK);
         }
     }
 
-    private class RuneButton extends TextButton {
+    private class RuneButton extends RunicTextButton {
         private final ResourceLocation runeId;
 
         private RuneButton(UIFrame frame, ResourceLocation runeId, int x, int y, int width, int height) {
@@ -767,57 +790,18 @@ public class RunicCastingScreen extends EasyScreen {
         }
     }
 
-    private static Component getRuneName(ResourceLocation runeId) {
-        IRunicRune rune = ModRunicRunes.get(runeId);
-        return rune == null ? Component.literal(runeId.getPath()) : rune.getName();
-    }
-
-    private static class TextButton extends EasyButton {
-        private final Component text;
-
-        private TextButton(UIFrame frame, int x, int y, int width, int height, Component text) {
-            super(frame, x, y);
-            this.text = text;
-
-            setWidth(width);
-            setHeight(height);
-        }
-
-        @Override
-        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            boolean manuallyHovered = isPointBounded(mouseX, mouseY);
-
-            int color = isPressed()
-                    ? 0xCC6F4DBA
-                    : manuallyHovered ? 0xAA4F3A7A : 0xAA211733;
-
-            guiGraphics.fill(0, 0, getWidth(), getHeight(), color);
-            guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), 0xFFB79CFF);
-
-            int textY = (getHeight() - Minecraft.getInstance().font.lineHeight) / 2 + 1;
-
-            guiGraphics.drawCenteredString(
-                    Minecraft.getInstance().font,
-                    text,
-                    getWidth() / 2,
-                    textY,
-                    0xFFFFFFFF
-            );
-        }
-    }
-
     private class TimerLabel extends EasyLabel {
         private TimerLabel(UIFrame frame, int x, int y, int width, int height) {
             super(frame);
             setText(Component.empty());
-            setTextColor(0xFFBEB4D7);
+            setTextColor(RunicGuiTheme.TEXT_MUTED);
             setWidth(width);
             setHeight(height);
             getPositioning().setX(x);
             getPositioning().setY(y);
             setScaleToFit(true);
             setTextScale(0.7F);
-            setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
+            setTextPositioningX(EasyLabel.TextPositionRule.END);
             setTextPositioningY(EasyLabel.TextPositionRule.CENTER);
         }
 
@@ -827,157 +811,4 @@ public class RunicCastingScreen extends EasyScreen {
             super.renderTick(guiGraphics, mouseX, mouseY, partialTick);
         }
     }
-
-    private class TimerBar extends RenderableElement {
-        private TimerBar(UIFrame frame, int x, int y, int width, int height) {
-            super(frame, x, y);
-            setWidth(width);
-            setHeight(height);
-        }
-
-        @Override
-        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            guiGraphics.fill(0, 0, getWidth(), getHeight(), 0xAA12091F);
-
-            int fillWidth = (int) (getWidth() * getTimerProgress());
-            guiGraphics.fill(0, 0, fillWidth, getHeight(), 0xCC8A63FF);
-            guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), 0xFFB79CFF);
-        }
-    }
-
-    private class RunicPanel extends RenderableElement {
-        private RunicPanel(UIFrame frame) {
-            super(frame);
-        }
-
-        @Override
-        public void renderTick(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            ResourceLocation hoveredRune = null;
-
-            for (RuneButton button : runeButtons) {
-                if (button.isPointBounded(mouseX, mouseY)) {
-                    hoveredRune = button.runeId;
-                    break;
-                }
-            }
-
-            refreshHoverLabel(hoveredRune);
-
-            super.renderTick(guiGraphics, mouseX, mouseY, partialTick);
-        }
-
-        @Override
-        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            guiGraphics.fill(0, 0, getWidth(), getHeight(), 0xDD0D0718);
-            guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), 0xFFE8D8FF);
-        }
-    }
-
-    private void refreshHoverLabel(ResourceLocation hoveredRune) {
-        if (hoverBox == null || hoverLabel == null) {
-            return;
-        }
-
-        if (hoveredRune == null) {
-            hoverBox.setVisible(false);
-            hoverLabel.setText(Component.empty());
-            return;
-        }
-
-        IRunicRune rune = ModRunicRunes.get(hoveredRune);
-
-        if (rune == null) {
-            hoverBox.setVisible(false);
-            hoverLabel.setText(Component.empty());
-            return;
-        }
-
-        hoverBox.setVisible(true);
-        hoverLabel.setText(Component.translatable(
-                "runic_ascension.runic.casting.hover",
-                rune.getName(),
-                formatEnumName(rune.getType().name()),
-                formatEnumName(rune.getDepth().name())
-        ));
-    }
-
-    private static String formatEnumName(String name) {
-        String lower = name.toLowerCase();
-
-        if (lower.isEmpty()) {
-            return lower;
-        }
-
-        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
-    }
-
-private void addRuneTabs(RenderableElement panel, UIFrame frame) {
-    int tabX = 15;
-
-    for (RunicRuneType type : RunicRuneType.values()) {
-        TextButton tab = new TextButton(
-                frame,
-                tabX,
-                140,
-                78,
-                16,
-                Component.literal(formatEnumName(type.name()))
-        ) {
-            @Override
-            public void onClick() {
-                setActiveRuneType(type);
-            }
-        };
-
-        tabButtons.put(type, tab);
-        panel.addChild(tab);
-        tabX += 84;
-
-        RunicRuneScrollBox scrollBox = new RunicRuneScrollBox(frame, 15, 162, 330, 84);
-        scrollBox.setVisible(type == activeRuneType);
-        scrollBox.setActive(type == activeRuneType);
-
-        runeScrollBoxes.put(type, scrollBox);
-        panel.addChild(scrollBox);
-    }
-
-    for (ResourceLocation runeId : usableRunes) {
-        IRunicRune rune = ModRunicRunes.get(runeId);
-
-        if (rune == null) {
-            continue;
-        }
-
-        RunicRuneScrollBox scrollBox = runeScrollBoxes.get(rune.getType());
-
-        if (scrollBox == null) {
-            continue;
-        }
-
-        RuneButton runeButton = new RuneButton(
-                frame,
-                runeId,
-                0,
-                0,
-                RunicRuneScrollBox.BUTTON_WIDTH,
-                RunicRuneScrollBox.BUTTON_HEIGHT
-        );
-
-        runeButtons.add(runeButton);
-        scrollBox.addChild(runeButton);
-    }
-
-    setActiveRuneType(activeRuneType);
-}
-
-private void setActiveRuneType(RunicRuneType type) {
-    activeRuneType = type;
-
-    for (Map.Entry<RunicRuneType, RunicRuneScrollBox> entry : runeScrollBoxes.entrySet()) {
-        boolean active = entry.getKey() == type;
-        entry.getValue().setVisible(active);
-        entry.getValue().setActive(active);
-    }
-}
-
 }

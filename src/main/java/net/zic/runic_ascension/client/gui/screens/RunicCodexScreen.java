@@ -2,56 +2,70 @@ package net.zic.runic_ascension.client.gui.screens;
 
 import net.lucent.easygui.gui.RenderableElement;
 import net.lucent.easygui.gui.UIFrame;
-import net.lucent.easygui.gui.elements.built_in.EasyButton;
-import net.lucent.easygui.gui.elements.built_in.EasyLabel;
 import net.lucent.easygui.gui.layout.positioning.rules.PositioningRules;
 import net.lucent.easygui.screen.EasyScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.zic.runic_ascension.content.runes.IRunicRune;
-import net.zic.runic_ascension.content.runes.ModRunicRunes;
+import net.zic.runic_ascension.client.gui.elements.RunicGuiTheme;
+import net.zic.runic_ascension.client.gui.elements.RunicLabel;
+import net.zic.runic_ascension.client.gui.elements.RunicPanelElement;
+import net.zic.runic_ascension.client.gui.elements.RunicTextButton;
+import net.zic.runic_ascension.content.RunicScrapLore;
 import net.zic.runic_ascension.content.casting.RunicDiscoveredFormula;
 import net.zic.runic_ascension.content.casting.RunicEffectProfile;
 import net.zic.runic_ascension.content.casting.RunicFormula;
 import net.zic.runic_ascension.content.casting.RunicFormulaInterpreter;
 import net.zic.runic_ascension.content.casting.RunicFormulaMasteryGrade;
 import net.zic.runic_ascension.content.casting.RunicFormulaParser;
+import net.zic.runic_ascension.content.runes.IRunicRune;
+import net.zic.runic_ascension.content.runes.ModRunicRunes;
 import net.zic.runic_ascension.content.sequences.IRunicSequence;
 import net.zic.runic_ascension.content.sequences.ModRunicSequences;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class RunicCodexScreen extends EasyScreen {
 
-    private static final int PANEL_WIDTH = 420;
-    private static final int PANEL_HEIGHT = 300;
-    private static final int RUNE_PAGE_SIZE = 9;
-    private static final int SEQUENCE_PAGE_SIZE = 9;
-    private static final int PAGE_CONTROL_Y = 178;
-    private static final int DETAIL_PANEL_Y = 194;
-    private static final int DETAIL_PANEL_HEIGHT = 88;
+    private static final int PANEL_WIDTH = 520;
+    private static final int PANEL_HEIGHT = 330;
+    private static final int SIDE_WIDTH = 240;
+    private static final int LEFT_X = 14;
+    private static final int RIGHT_X = 266;
+    private static final int HEADER_Y = 28;
+    private static final int LIST_Y = 44;
+    private static final int LIST_HEIGHT = 166;
+    private static final int PAGE_Y = 214;
+    private static final int DETAIL_Y = 236;
+    private static final int DETAIL_HEIGHT = 78;
+    private static final int PAGE_SIZE = 10;
+    private static final int SCRAP_ROTATION_TICKS = 100;
 
     private final List<ResourceLocation> knownRunes;
     private final List<ResourceLocation> discoveredSequences;
     private final Map<ResourceLocation, RunicDiscoveredFormula> discoveredFormulaData;
+    private final List<String> discoveredScraps;
 
     private RenderableElement runeListContainer;
     private RenderableElement sequenceListContainer;
-    private RenderableElement detailContainer;
-    private EasyLabel runePageLabel;
-    private EasyLabel sequencePageLabel;
+    private RenderableElement runeDetailContainer;
+    private RenderableElement sequenceDetailContainer;
+    private RunicLabel runePageLabel;
+    private RunicLabel sequencePageLabel;
 
     private int runePage;
     private int sequencePage;
+    private int scrapRotationTicks;
+    private int scrapRotationIndex;
     private ResourceLocation selectedRune;
     private ResourceLocation selectedSequence;
 
     public RunicCodexScreen(List<ResourceLocation> knownRunes, List<ResourceLocation> discoveredSequences) {
-        this(knownRunes, discoveredSequences, List.of());
+        this(knownRunes, discoveredSequences, List.of(), List.of(), "");
     }
 
     public RunicCodexScreen(
@@ -59,11 +73,22 @@ public class RunicCodexScreen extends EasyScreen {
             List<ResourceLocation> discoveredSequences,
             List<RunicDiscoveredFormula> discoveredFormulas
     ) {
+        this(knownRunes, discoveredSequences, discoveredFormulas, List.of(), "");
+    }
+
+    public RunicCodexScreen(
+            List<ResourceLocation> knownRunes,
+            List<ResourceLocation> discoveredSequences,
+            List<RunicDiscoveredFormula> discoveredFormulas,
+            List<String> discoveredScraps,
+            String focusedScrap
+    ) {
         super(Component.translatable("runic_ascension.runic.codex.title"));
 
-        this.knownRunes = List.copyOf(knownRunes);
-        this.discoveredSequences = List.copyOf(discoveredSequences);
+        this.knownRunes = knownRunes == null ? List.of() : List.copyOf(knownRunes);
+        this.discoveredSequences = discoveredSequences == null ? List.of() : List.copyOf(discoveredSequences);
         this.discoveredFormulaData = new HashMap<>();
+        this.discoveredScraps = normaliseScraps(discoveredScraps, focusedScrap);
 
         if (discoveredFormulas != null) {
             for (RunicDiscoveredFormula formula : discoveredFormulas) {
@@ -71,12 +96,6 @@ public class RunicCodexScreen extends EasyScreen {
                     this.discoveredFormulaData.put(formula.formulaId(), formula);
                 }
             }
-        }
-
-        if (!this.knownRunes.isEmpty()) {
-            this.selectedRune = this.knownRunes.get(0);
-        } else if (!this.discoveredSequences.isEmpty()) {
-            this.selectedSequence = this.discoveredSequences.get(0);
         }
 
         build(getUIFrame());
@@ -87,52 +106,58 @@ public class RunicCodexScreen extends EasyScreen {
         return false;
     }
 
+    @Override
+    public void tick() {
+        super.tick();
+
+        if (selectedRune != null && selectedSequence != null) {
+            return;
+        }
+
+        scrapRotationTicks++;
+
+        if (scrapRotationTicks >= SCRAP_ROTATION_TICKS) {
+            scrapRotationTicks = 0;
+            advanceScrapRotation();
+        }
+    }
+
     private void build(UIFrame frame) {
         frame.setPauseGame(false);
 
-        CodexPanel panel = new CodexPanel(frame);
-        panel.setWidth(PANEL_WIDTH);
-        panel.setHeight(PANEL_HEIGHT);
+        RunicPanelElement panel = new RunicPanelElement(frame, 0, 0, PANEL_WIDTH, PANEL_HEIGHT, true, true);
         panel.getPositioning().setPositioningRule(PositioningRules.CENTER);
         panel.getPositioning().setX(-PANEL_WIDTH / 2);
         panel.getPositioning().setY(-PANEL_HEIGHT / 2);
         frame.setRoot(panel);
 
-        EasyLabel title = label(frame, Component.translatable("runic_ascension.runic.codex.title"), 0, 8, PANEL_WIDTH, 14, 0xFFF6E7FF);
-        title.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        title.setTextScale(1.1F);
+        RunicLabel title = new RunicLabel(frame, Component.translatable("runic_ascension.runic.codex.title"), 0, 4, PANEL_WIDTH, 14, RunicGuiTheme.TEXT_TITLE).centered().scaled(1.05F);
         panel.addChild(title);
 
-        EasyLabel runeHeader = label(frame, Component.translatable("runic_ascension.runic.codex.runes"), 22, 31, 160, 12, 0xFF3A203F);
-        runeHeader.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        panel.addChild(runeHeader);
+        panel.addChild(new RunicLabel(frame, Component.translatable("runic_ascension.runic.codex.runes"), LEFT_X, HEADER_Y, SIDE_WIDTH, 12, RunicGuiTheme.TEXT_TITLE).centered().scaled(0.82F));
+        panel.addChild(new RunicLabel(frame, Component.translatable("runic_ascension.runic.codex.sequences"), RIGHT_X, HEADER_Y, SIDE_WIDTH, 12, RunicGuiTheme.TEXT_TITLE).centered().scaled(0.82F));
 
-        EasyLabel sequenceHeader = label(frame, Component.translatable("runic_ascension.runic.codex.sequences"), 238, 31, 160, 12, 0xFF3A203F);
-        sequenceHeader.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-        panel.addChild(sequenceHeader);
-
-        runeListContainer = new RenderableElement(frame, 22, 48);
-        runeListContainer.setWidth(160);
-        runeListContainer.setHeight(137);
+        runeListContainer = new RunicPanelElement(frame, LEFT_X, LIST_Y, SIDE_WIDTH, LIST_HEIGHT);
         panel.addChild(runeListContainer);
 
-        sequenceListContainer = new RenderableElement(frame, 238, 48);
-        sequenceListContainer.setWidth(160);
-        sequenceListContainer.setHeight(137);
+        sequenceListContainer = new RunicPanelElement(frame, RIGHT_X, LIST_Y, SIDE_WIDTH, LIST_HEIGHT);
         panel.addChild(sequenceListContainer);
 
-        detailContainer = new RenderableElement(frame, 22, DETAIL_PANEL_Y) {
-            @Override
-            public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-                guiGraphics.fill(0, 0, getWidth(), getHeight(), 0x44FFFFFF);
-                guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), 0xAA3A203F);
-            }
-        };
-        detailContainer.setWidth(376);
-        detailContainer.setHeight(DETAIL_PANEL_HEIGHT);
-        panel.addChild(detailContainer);
+        runeDetailContainer = new RotatingDetailPanel(frame, LEFT_X, DETAIL_Y, SIDE_WIDTH, DETAIL_HEIGHT, true);
+        panel.addChild(runeDetailContainer);
 
-        TextButton runePrev = new TextButton(frame, 22, PAGE_CONTROL_Y, 36, 10, Component.literal("<")) {
+        sequenceDetailContainer = new RotatingDetailPanel(frame, RIGHT_X, DETAIL_Y, SIDE_WIDTH, DETAIL_HEIGHT, false);
+        panel.addChild(sequenceDetailContainer);
+
+        addPageControls(panel, frame);
+        refreshRuneList();
+        refreshSequenceList();
+        refreshRuneDetails();
+        refreshSequenceDetails();
+    }
+
+    private void addPageControls(RenderableElement panel, UIFrame frame) {
+        RunicTextButton runePrev = new RunicTextButton(frame, LEFT_X, PAGE_Y, 36, 14, Component.literal("<")) {
             @Override
             public void onClick() {
                 if (runePage > 0) {
@@ -143,15 +168,13 @@ public class RunicCodexScreen extends EasyScreen {
         };
         panel.addChild(runePrev);
 
-        runePageLabel = label(frame, Component.empty(), 61, PAGE_CONTROL_Y, 82, 10, 0xFF3A203F);
-        runePageLabel.setTextScale(0.7F);
-        runePageLabel.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
+        runePageLabel = new RunicLabel(frame, Component.empty(), LEFT_X + 39, PAGE_Y, 162, 14, RunicGuiTheme.TEXT_MUTED).centered().scaled(0.7F);
         panel.addChild(runePageLabel);
 
-        TextButton runeNext = new TextButton(frame, 146, PAGE_CONTROL_Y, 36, 10, Component.literal(">")) {
+        RunicTextButton runeNext = new RunicTextButton(frame, LEFT_X + SIDE_WIDTH - 36, PAGE_Y, 36, 14, Component.literal(">")) {
             @Override
             public void onClick() {
-                if (runePage + 1 < getPageCount(knownRunes.size(), RUNE_PAGE_SIZE)) {
+                if (runePage + 1 < getPageCount(knownRunes.size(), PAGE_SIZE)) {
                     runePage++;
                     refreshRuneList();
                 }
@@ -159,7 +182,7 @@ public class RunicCodexScreen extends EasyScreen {
         };
         panel.addChild(runeNext);
 
-        TextButton sequencePrev = new TextButton(frame, 238, PAGE_CONTROL_Y, 36, 10, Component.literal("<")) {
+        RunicTextButton sequencePrev = new RunicTextButton(frame, RIGHT_X, PAGE_Y, 36, 14, Component.literal("<")) {
             @Override
             public void onClick() {
                 if (sequencePage > 0) {
@@ -170,47 +193,39 @@ public class RunicCodexScreen extends EasyScreen {
         };
         panel.addChild(sequencePrev);
 
-        sequencePageLabel = label(frame, Component.empty(), 277, PAGE_CONTROL_Y, 82, 10, 0xFF3A203F);
-        sequencePageLabel.setTextScale(0.7F);
-        sequencePageLabel.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
+        sequencePageLabel = new RunicLabel(frame, Component.empty(), RIGHT_X + 39, PAGE_Y, 162, 14, RunicGuiTheme.TEXT_MUTED).centered().scaled(0.7F);
         panel.addChild(sequencePageLabel);
 
-        TextButton sequenceNext = new TextButton(frame, 362, PAGE_CONTROL_Y, 36, 10, Component.literal(">")) {
+        RunicTextButton sequenceNext = new RunicTextButton(frame, RIGHT_X + SIDE_WIDTH - 36, PAGE_Y, 36, 14, Component.literal(">")) {
             @Override
             public void onClick() {
-                if (sequencePage + 1 < getPageCount(discoveredSequences.size(), SEQUENCE_PAGE_SIZE)) {
+                if (sequencePage + 1 < getPageCount(discoveredSequences.size(), PAGE_SIZE)) {
                     sequencePage++;
                     refreshSequenceList();
                 }
             }
         };
         panel.addChild(sequenceNext);
-
-        refreshRuneList();
-        refreshSequenceList();
-        refreshDetails();
     }
 
     private void refreshRuneList() {
         runeListContainer.removeChildren();
 
         if (knownRunes.isEmpty()) {
-            EasyLabel empty = label(getUIFrame(), Component.translatable("runic_ascension.runic.codex.no_runes"), 0, 4, 160, 12, 0xFF6B4F3A);
-            empty.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-            empty.setTextScale(0.75F);
+            RunicLabel empty = new RunicLabel(getUIFrame(), Component.translatable("runic_ascension.runic.codex.no_runes"), 6, 8, SIDE_WIDTH - 12, 12, RunicGuiTheme.TEXT_DIM).centered().scaled(0.75F);
             runeListContainer.addChild(empty);
             refreshRunePageLabel();
             return;
         }
 
-        int start = runePage * RUNE_PAGE_SIZE;
-        int end = Math.min(start + RUNE_PAGE_SIZE, knownRunes.size());
+        int start = runePage * PAGE_SIZE;
+        int end = Math.min(start + PAGE_SIZE, knownRunes.size());
 
         for (int i = start; i < end; i++) {
             ResourceLocation runeId = knownRunes.get(i);
             int localIndex = i - start;
 
-            TextButton button = new TextButton(getUIFrame(), 0, localIndex * 15, 160, 13, getRuneName(runeId)) {
+            RunicTextButton button = new RunicTextButton(getUIFrame(), 6, 7 + localIndex * 15, SIDE_WIDTH - 12, 13, getRuneName(runeId)) {
                 @Override
                 protected boolean isSelected() {
                     return runeId.equals(selectedRune);
@@ -218,11 +233,9 @@ public class RunicCodexScreen extends EasyScreen {
 
                 @Override
                 public void onClick() {
-                    selectedRune = runeId;
-                    selectedSequence = null;
+                    selectedRune = runeId.equals(selectedRune) ? null : runeId;
                     refreshRuneList();
-                    refreshSequenceList();
-                    refreshDetails();
+                    refreshRuneDetails();
                 }
             };
 
@@ -236,22 +249,20 @@ public class RunicCodexScreen extends EasyScreen {
         sequenceListContainer.removeChildren();
 
         if (discoveredSequences.isEmpty()) {
-            EasyLabel empty = label(getUIFrame(), Component.translatable("runic_ascension.runic.codex.no_sequences"), 0, 4, 160, 12, 0xFF6B4F3A);
-            empty.setTextPositioningX(EasyLabel.TextPositionRule.CENTER);
-            empty.setTextScale(0.75F);
+            RunicLabel empty = new RunicLabel(getUIFrame(), Component.translatable("runic_ascension.runic.codex.no_sequences"), 6, 8, SIDE_WIDTH - 12, 12, RunicGuiTheme.TEXT_DIM).centered().scaled(0.75F);
             sequenceListContainer.addChild(empty);
             refreshSequencePageLabel();
             return;
         }
 
-        int start = sequencePage * SEQUENCE_PAGE_SIZE;
-        int end = Math.min(start + SEQUENCE_PAGE_SIZE, discoveredSequences.size());
+        int start = sequencePage * PAGE_SIZE;
+        int end = Math.min(start + PAGE_SIZE, discoveredSequences.size());
 
         for (int i = start; i < end; i++) {
             ResourceLocation sequenceId = discoveredSequences.get(i);
             int localIndex = i - start;
 
-            TextButton button = new TextButton(getUIFrame(), 0, localIndex * 15, 160, 13, getSequenceName(sequenceId)) {
+            RunicTextButton button = new RunicTextButton(getUIFrame(), 6, 7 + localIndex * 15, SIDE_WIDTH - 12, 13, getSequenceName(sequenceId)) {
                 @Override
                 protected boolean isSelected() {
                     return sequenceId.equals(selectedSequence);
@@ -259,11 +270,9 @@ public class RunicCodexScreen extends EasyScreen {
 
                 @Override
                 public void onClick() {
-                    selectedSequence = sequenceId;
-                    selectedRune = null;
-                    refreshRuneList();
+                    selectedSequence = sequenceId.equals(selectedSequence) ? null : sequenceId;
                     refreshSequenceList();
-                    refreshDetails();
+                    refreshSequenceDetails();
                 }
             };
 
@@ -273,44 +282,47 @@ public class RunicCodexScreen extends EasyScreen {
         refreshSequencePageLabel();
     }
 
-    private void refreshDetails() {
-        detailContainer.removeChildren();
+    private void refreshRuneDetails() {
+        runeDetailContainer.removeChildren();
 
-        if (selectedRune != null) {
-            addRuneDetails(selectedRune);
+        if (selectedRune == null) {
+            addScrapRotation(runeDetailContainer, true);
             return;
         }
 
-        if (selectedSequence != null) {
-            addSequenceDetails(selectedSequence);
+        addRuneDetails(selectedRune);
+    }
+
+    private void refreshSequenceDetails() {
+        sequenceDetailContainer.removeChildren();
+
+        if (selectedSequence == null) {
+            addScrapRotation(sequenceDetailContainer, false);
             return;
         }
 
-        EasyLabel empty = label(getUIFrame(), Component.translatable("runic_ascension.runic.codex.select_entry"), 8, 8, 360, 12, 0xFF6B4F3A);
-        empty.setTextScale(0.8F);
-        detailContainer.addChild(empty);
+        addSequenceDetails(selectedSequence);
     }
 
     private void addRuneDetails(ResourceLocation runeId) {
         IRunicRune rune = ModRunicRunes.get(runeId);
 
-        EasyLabel name = label(getUIFrame(), getRuneName(runeId), 8, 5, 160, 12, 0xFF2A162F);
-        name.setTextScale(0.85F);
-        detailContainer.addChild(name);
+        addDetailTitle(runeDetailContainer, getRuneName(runeId));
 
         if (rune == null) {
-            addDetailLine(Component.literal(runeId.toString()), 18);
+            addDetailLine(runeDetailContainer, Component.literal(runeId.toString()), 19);
             return;
         }
 
-        addDetailLine(Component.translatable(
+        addDetailLine(runeDetailContainer, Component.translatable(
                 "runic_ascension.runic.codex.rune_details",
-                formatEnumName(rune.getType().name()),
-                formatEnumName(rune.getDepth().name()),
+                RunicGuiTheme.formatEnumName(rune.getType().name()),
+                RunicGuiTheme.formatEnumName(rune.getDepth().name()),
                 rune.getMinimumRunicRealmToUse()
-        ), 18);
+        ), 19);
 
-        addDetailLine(Component.translatable("runic_ascension.runic.codex.rune_id", runeId.toString()), 31);
+        addDetailLine(runeDetailContainer, Component.translatable("runic_ascension.runic.codex.rune_observe", rune.getMinimumRunicRealmToObserve()), 32);
+        addDetailLine(runeDetailContainer, Component.translatable("runic_ascension.runic.codex.rune_id", runeId.toString()), 45);
     }
 
     private void addSequenceDetails(ResourceLocation sequenceId) {
@@ -321,43 +333,120 @@ public class RunicCodexScreen extends EasyScreen {
 
         IRunicSequence sequence = ModRunicSequences.get(sequenceId);
 
-        EasyLabel name = label(getUIFrame(), getSequenceName(sequenceId), 8, 3, 200, 12, 0xFF2A162F);
-        name.setTextScale(0.85F);
-        detailContainer.addChild(name);
+        addDetailTitle(sequenceDetailContainer, getSequenceName(sequenceId));
 
         if (sequence == null) {
-            addDetailLine(Component.literal(sequenceId.toString()), 18);
+            addDetailLine(sequenceDetailContainer, Component.literal(sequenceId.toString()), 19);
             return;
         }
 
-        addDetailLine(Component.translatable("runic_ascension.runic.sequence." + sequenceId.getPath() + ".desc"), 16);
+        addDetailLine(sequenceDetailContainer, Component.translatable("runic_ascension.runic.sequence." + sequenceId.getPath() + ".desc"), 18);
 
-        addDetailLine(Component.translatable(
+        addDetailLine(sequenceDetailContainer, Component.translatable(
                 "runic_ascension.runic.codex.sequence_details",
-                formatEnumName(sequence.getTier().name()),
+                RunicGuiTheme.formatEnumName(sequence.getTier().name()),
                 sequence.getMinimumRunicRealm(),
                 sequence.getQiCost()
-        ), 28);
+        ), 32);
 
-        addDetailLine(Component.translatable("runic_ascension.runic.codex.sequence_formula", formatRuneList(sequence.getRequiredRunes())), 40);
+        addDetailLine(sequenceDetailContainer, Component.translatable("runic_ascension.runic.codex.sequence_formula", formatRuneList(sequence.getRequiredRunes())), 45);
     }
 
-    private void addDetailLine(Component text, int y) {
-        addDetailLine(text, y, 0xFF3A203F);
+    private void addFormulaDetails(ResourceLocation formulaId) {
+        RunicDiscoveredFormula discoveredFormula = discoveredFormulaData.get(formulaId);
+        List<ResourceLocation> runeIds = discoveredFormula == null
+                ? getFormulaRuneIds(formulaId)
+                : discoveredFormula.runes();
+
+        RunicFormula formula = RunicFormulaParser.parse(runeIds);
+        RunicEffectProfile profile = RunicFormulaInterpreter.interpret(formula);
+
+        addDetailTitle(sequenceDetailContainer, Component.literal(profile.displayName()));
+
+        int castCount = discoveredFormula == null ? 0 : discoveredFormula.castCount();
+        RunicFormulaMasteryGrade grade = discoveredFormula == null
+                ? RunicFormulaMasteryGrade.UNSTABLE
+                : discoveredFormula.getMasteryGrade();
+
+        addDetailLine(sequenceDetailContainer, Component.translatable(
+                "runic_ascension.runic.codex.formula_summary",
+                RunicGuiTheme.formatEnumName(profile.archetype().name()),
+                formatProfilePath(profile.damageKind())
+        ), 17);
+
+        addDetailLine(sequenceDetailContainer, Component.translatable(
+                "runic_ascension.runic.codex.formula_mastery",
+                formatMasteryGrade(grade),
+                castCount
+        ), 29);
+
+        addDetailLine(sequenceDetailContainer, Component.translatable(
+                "runic_ascension.runic.codex.formula_profile_numbers",
+                formatMultiplier(profile.damageMultiplier()),
+                formatMultiplier(profile.rangeMultiplier()),
+                formatSignedPercent(profile.stabilityModifier())
+        ), 41);
+
+        addDetailLine(sequenceDetailContainer, Component.translatable("runic_ascension.runic.codex.formula_runes", formatRuneList(runeIds)), 53);
     }
 
-    private void addDetailLine(Component text, int y, int color) {
-        EasyLabel line = label(getUIFrame(), text, 8, y, 360, 9, color);
-        line.setTextScale(0.68F);
-        detailContainer.addChild(line);
+    private void addScrapRotation(RenderableElement container, boolean runeSide) {
+        if (discoveredScraps.isEmpty()) {
+            addDetailTitle(container, Component.translatable("runic_ascension.runic.codex.scrap_hint.title"));
+            addDetailLine(container, Component.translatable("runic_ascension.runic.codex.scrap_hint.line_1"), 20);
+            addDetailLine(container, Component.translatable("runic_ascension.runic.codex.scrap_hint.line_2"), 34);
+            addDetailLine(container, Component.translatable(runeSide
+                    ? "runic_ascension.runic.codex.scrap_hint.rune_side"
+                    : "runic_ascension.runic.codex.scrap_hint.sequence_side"), 48);
+            return;
+        }
+
+        String scrapKey = discoveredScraps.get(Math.floorMod(scrapRotationIndex + (runeSide ? 0 : 1), discoveredScraps.size()));
+        RunicScrapLore.Entry entry = RunicScrapLore.get(scrapKey);
+
+        if (entry == null) {
+            addDetailTitle(container, Component.literal(scrapKey));
+            return;
+        }
+
+        addDetailTitle(container, Component.translatable(entry.translationBase() + ".title"));
+
+        int maxLines = Math.min(entry.lineCount(), 4);
+        for (int i = 1; i <= maxLines; i++) {
+            addDetailLine(container, Component.translatable(entry.translationBase() + ".line_" + i), 10 + i * 13);
+        }
+    }
+
+    private void advanceScrapRotation() {
+        if (!discoveredScraps.isEmpty()) {
+            scrapRotationIndex = (scrapRotationIndex + 1) % discoveredScraps.size();
+        }
+
+        if (selectedRune == null && runeDetailContainer != null) {
+            refreshRuneDetails();
+        }
+
+        if (selectedSequence == null && sequenceDetailContainer != null) {
+            refreshSequenceDetails();
+        }
+    }
+
+    private void addDetailTitle(RenderableElement container, Component text) {
+        RunicLabel name = new RunicLabel(getUIFrame(), text, 7, 4, SIDE_WIDTH - 14, 11, RunicGuiTheme.TEXT_TITLE).centered().scaled(0.76F);
+        container.addChild(name);
+    }
+
+    private void addDetailLine(RenderableElement container, Component text, int y) {
+        RunicLabel line = new RunicLabel(getUIFrame(), text, 8, y, SIDE_WIDTH - 16, 9, RunicGuiTheme.TEXT_MUTED).scaled(0.62F);
+        container.addChild(line);
     }
 
     private void refreshRunePageLabel() {
         if (runePageLabel != null) {
             runePageLabel.setText(Component.translatable(
                     "runic_ascension.runic.codex.page",
-                    getDisplayedPage(knownRunes.size(), RUNE_PAGE_SIZE, runePage),
-                    getPageCount(knownRunes.size(), RUNE_PAGE_SIZE)
+                    getDisplayedPage(knownRunes.size(), PAGE_SIZE, runePage),
+                    getPageCount(knownRunes.size(), PAGE_SIZE)
             ));
         }
     }
@@ -366,26 +455,18 @@ public class RunicCodexScreen extends EasyScreen {
         if (sequencePageLabel != null) {
             sequencePageLabel.setText(Component.translatable(
                     "runic_ascension.runic.codex.page",
-                    getDisplayedPage(discoveredSequences.size(), SEQUENCE_PAGE_SIZE, sequencePage),
-                    getPageCount(discoveredSequences.size(), SEQUENCE_PAGE_SIZE)
+                    getDisplayedPage(discoveredSequences.size(), PAGE_SIZE, sequencePage),
+                    getPageCount(discoveredSequences.size(), PAGE_SIZE)
             ));
         }
     }
 
     private static int getDisplayedPage(int entryCount, int pageSize, int page) {
-        if (entryCount <= 0) {
-            return 0;
-        }
-
-        return page + 1;
+        return entryCount <= 0 ? 0 : page + 1;
     }
 
     private static int getPageCount(int entryCount, int pageSize) {
-        if (entryCount <= 0) {
-            return 0;
-        }
-
-        return (entryCount + pageSize - 1) / pageSize;
+        return entryCount <= 0 ? 0 : (entryCount + pageSize - 1) / pageSize;
     }
 
     private static Component getRuneName(ResourceLocation runeId) {
@@ -417,153 +498,6 @@ public class RunicCodexScreen extends EasyScreen {
         return builder.toString();
     }
 
-    private static String formatEnumName(String name) {
-        String lower = name.toLowerCase();
-
-        if (lower.isEmpty()) {
-            return lower;
-        }
-
-        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
-    }
-
-    private static EasyLabel label(UIFrame frame, Component text, int x, int y, int width, int height, int color) {
-        EasyLabel label = new EasyLabel(frame);
-        label.setText(text);
-        label.setTextColor(color);
-        label.setWidth(width);
-        label.setHeight(height);
-        label.getPositioning().setX(x);
-        label.getPositioning().setY(y);
-        label.setScaleToFit(true);
-        label.setTextPositioningY(EasyLabel.TextPositionRule.CENTER);
-        return label;
-    }
-
-    private static class TextButton extends EasyButton {
-        private final Component text;
-
-        private TextButton(UIFrame frame, int x, int y, int width, int height, Component text) {
-            super(frame, x, y);
-            this.text = text;
-
-            setWidth(width);
-            setHeight(height);
-        }
-
-        protected boolean isSelected() {
-            return false;
-        }
-
-        @Override
-        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            boolean manuallyHovered = isPointBounded(mouseX, mouseY);
-
-            int color = isSelected()
-                    ? 0xCC6B38B6
-                    : isPressed() ? 0xAA4A276F : manuallyHovered ? 0x884A276F : 0x33FFFFFF;
-
-            int outline = isSelected() || manuallyHovered ? 0xFF2A162F : 0x663A203F;
-            int textColor = isSelected() ? 0xFFFFF4FF : 0xFF2A162F;
-
-            guiGraphics.fill(0, 0, getWidth(), getHeight(), color);
-            guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), outline);
-
-            Minecraft minecraft = Minecraft.getInstance();
-            int textX = (getWidth() - minecraft.font.width(text)) / 2;
-            int textY = (getHeight() - minecraft.font.lineHeight) / 2 + 1;
-
-            guiGraphics.drawString(
-                    minecraft.font,
-                    text,
-                    textX,
-                    textY,
-                    textColor,
-                    false
-            );
-        }
-    }
-
-    private static class CodexPanel extends RenderableElement {
-        private CodexPanel(UIFrame frame) {
-            super(frame);
-        }
-
-        @Override
-        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            guiGraphics.fill(0, 0, getWidth(), getHeight(), 0xFFE5D0A3);
-
-            guiGraphics.fill(0, 0, getWidth(), 24, 0xFF2A162F);
-
-            guiGraphics.fill(getWidth() / 2 - 1, 24, getWidth() / 2 + 1, getHeight(), 0x883A203F);
-
-            guiGraphics.fill(12, 28, getWidth() / 2 - 8, 188, 0x66FFF4D1);
-            guiGraphics.fill(getWidth() / 2 + 8, 28, getWidth() - 12, 188, 0x66FFF4D1);
-
-            guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), 0xFF2A162F);
-            guiGraphics.renderOutline(10, 26, getWidth() / 2 - 16, 164, 0xAA3A203F);
-            guiGraphics.renderOutline(getWidth() / 2 + 6, 26, getWidth() / 2 - 16, 164, 0xAA3A203F);
-
-            guiGraphics.fill(0, 0, 3, getHeight(), 0xFF1A0E21);
-            guiGraphics.fill(getWidth() - 3, 0, getWidth(), getHeight(), 0xFF1A0E21);
-
-            guiGraphics.fill(0, 23, getWidth(), 24, 0xFF7A3FD1);
-        }
-    }
-
-    private void addFormulaDetails(ResourceLocation formulaId) {
-        RunicDiscoveredFormula discoveredFormula = discoveredFormulaData.get(formulaId);
-        List<ResourceLocation> runeIds = discoveredFormula == null
-                ? getFormulaRuneIds(formulaId)
-                : discoveredFormula.runes();
-
-        RunicFormula formula = RunicFormulaParser.parse(runeIds);
-        RunicEffectProfile profile = RunicFormulaInterpreter.interpret(formula);
-
-        EasyLabel name = label(getUIFrame(), Component.literal(profile.displayName()), 8, 3, 240, 12, 0xFF2A162F);
-        name.setTextScale(0.85F);
-        detailContainer.addChild(name);
-
-        int castCount = discoveredFormula == null ? 0 : discoveredFormula.castCount();
-        RunicFormulaMasteryGrade grade = discoveredFormula == null
-                ? RunicFormulaMasteryGrade.UNSTABLE
-                : discoveredFormula.getMasteryGrade();
-
-        addDetailLine(Component.translatable(
-                "runic_ascension.runic.codex.formula_summary",
-                formatArchetype(profile),
-                formatProfilePath(profile.damageKind())
-        ), 16, 0xFF4A276F);
-
-        addDetailLine(Component.translatable(
-                "runic_ascension.runic.codex.formula_roles",
-                getPrimaryRuneName(formula.source()),
-                getPrimaryRuneName(formula.intent()),
-                getPrimaryRuneName(formula.form())
-        ), 28);
-
-        addDetailLine(Component.translatable(
-                "runic_ascension.runic.codex.formula_mastery",
-                formatMasteryGrade(grade),
-                castCount
-        ), 40);
-
-        addDetailLine(Component.translatable(
-                "runic_ascension.runic.codex.formula_profile_numbers",
-                formatMultiplier(profile.damageMultiplier()),
-                formatMultiplier(profile.rangeMultiplier()),
-                formatSignedPercent(profile.stabilityModifier())
-        ), 52);
-
-        addDetailLine(Component.translatable(
-                "runic_ascension.runic.codex.formula_flags",
-                formatFlags(profile)
-        ), 64);
-
-        addDetailLine(Component.translatable("runic_ascension.runic.codex.formula_runes", formatRuneList(runeIds)), 76);
-    }
-
-
     private static boolean isFormulaId(ResourceLocation id) {
         return id.getPath().startsWith("formula/");
     }
@@ -571,8 +505,7 @@ public class RunicCodexScreen extends EasyScreen {
     private static List<ResourceLocation> getFormulaRuneIds(ResourceLocation formulaId) {
         String raw = formulaId.getPath().substring("formula/".length());
         String[] parts = raw.split("_");
-
-        java.util.ArrayList<ResourceLocation> runeIds = new java.util.ArrayList<>();
+        List<ResourceLocation> runeIds = new ArrayList<>();
 
         for (String part : parts) {
             runeIds.add(ResourceLocation.fromNamespaceAndPath(formulaId.getNamespace(), part));
@@ -596,23 +529,7 @@ public class RunicCodexScreen extends EasyScreen {
     }
 
     private static String formatMasteryGrade(RunicFormulaMasteryGrade grade) {
-        String lower = grade.name().toLowerCase();
-
-        if (lower.isEmpty()) {
-            return lower;
-        }
-
-        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
-    }
-
-    private static Component getPrimaryRuneName(IRunicRune rune) {
-        return rune == null
-                ? Component.translatable("runic_ascension.runic.codex.none")
-                : rune.getName();
-    }
-
-    private static String formatArchetype(RunicEffectProfile profile) {
-        return formatEnumName(profile.archetype().name());
+        return RunicGuiTheme.formatEnumName(grade.name());
     }
 
     private static String formatProfilePath(String path) {
@@ -620,7 +537,7 @@ public class RunicCodexScreen extends EasyScreen {
             return "Runic";
         }
 
-        return formatEnumName(path.replace('_', ' '));
+        return RunicGuiTheme.formatEnumName(path.replace('_', ' '));
     }
 
     private static String formatMultiplier(float value) {
@@ -631,55 +548,43 @@ public class RunicCodexScreen extends EasyScreen {
         return String.format(java.util.Locale.ROOT, "%+d%%", Math.round(value * 100.0F));
     }
 
-    private static String formatFlags(RunicEffectProfile profile) {
-        if (profile.flags().isEmpty()) {
-            return Component.translatable("runic_ascension.runic.codex.none").getString();
+    private static List<String> normaliseScraps(List<String> rawScraps, String focusedScrap) {
+        List<String> output = new ArrayList<>();
+
+        if (focusedScrap != null && !focusedScrap.isBlank() && RunicScrapLore.get(focusedScrap) != null) {
+            output.add(focusedScrap);
         }
 
-        String joined = profile.flagsForDisplay();
-        if (joined.length() > 62) {
-            return joined.substring(0, 59) + "...";
-        }
-
-        return joined;
-    }
-
-    private static Component getFormulaDescription(List<ResourceLocation> runeIds) {
-        Component source = Component.translatable("runic_ascension.runic.codex.unknown");
-        Component intent = Component.translatable("runic_ascension.runic.codex.unknown");
-        Component form = Component.translatable("runic_ascension.runic.rune.bolt");
-
-        for (ResourceLocation runeId : runeIds) {
-            IRunicRune rune = ModRunicRunes.get(runeId);
-
-            if (rune == null) {
-                continue;
-            }
-
-            switch (rune.getType()) {
-                case SOURCE -> source = rune.getName();
-                case INTENT -> intent = rune.getName();
-                case FORM -> form = rune.getName();
+        if (rawScraps != null) {
+            for (String key : rawScraps) {
+                if (key != null && RunicScrapLore.get(key) != null && !output.contains(key)) {
+                    output.add(key);
+                }
             }
         }
 
-        return Component.translatable("runic_ascension.runic.codex.generated_formula_desc", form, source, intent);
+        return List.copyOf(output);
     }
 
-    private static Component formatRuneListSpaced(List<ResourceLocation> runeIds) {
-        Component result = Component.empty();
+    private class RotatingDetailPanel extends RunicPanelElement {
+        private final boolean runeSide;
 
-        for (int i = 0; i < runeIds.size(); i++) {
-            if (i > 0) {
-                result = result.copy().append(Component.literal(" "));
-            }
-
-            IRunicRune rune = ModRunicRunes.get(runeIds.get(i));
-            result = result.copy().append(rune == null ? Component.literal(runeIds.get(i).getPath()) : rune.getName());
+        private RotatingDetailPanel(UIFrame frame, int x, int y, int width, int height, boolean runeSide) {
+            super(frame, x, y, width, height);
+            this.runeSide = runeSide;
         }
 
-        return result;
+        @Override
+        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+            super.render(guiGraphics, mouseX, mouseY, partialTick);
+
+            boolean rotating = runeSide ? selectedRune == null : selectedSequence == null;
+            if (rotating) {
+                int pulseWidth = discoveredScraps.isEmpty()
+                        ? 0
+                        : (int) ((getWidth() - 2) * (scrapRotationTicks / (double) SCRAP_ROTATION_TICKS));
+                guiGraphics.fill(1, getHeight() - 2, 1 + pulseWidth, getHeight() - 1, RunicGuiTheme.ACCENT_SOFT);
+            }
+        }
     }
-
-
 }

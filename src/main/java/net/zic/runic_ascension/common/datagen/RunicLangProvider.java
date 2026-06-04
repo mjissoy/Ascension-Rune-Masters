@@ -53,6 +53,8 @@ public class RunicLangProvider extends LanguageProvider {
         add("item.runic_ascension.runic_scrap_first_formula", "Runic Scrap: First Formula");
         add("item.runic_ascension.runic_scrap_free_casting", "Runic Scrap: Free Casting");
         add("runic_ascension.runic.scrap.tooltip.read", "Right-click to let the words settle in your mind.");
+        add("runic_ascension.runic.scrap.recorded", "%s settles into your Codex.");
+        add("runic_ascension.runic.scrap.already_recorded", "%s is already recorded in your Codex.");
 
         add("runic_ascension.runic.brush.type.basic", "Basic Brush");
         add("runic_ascension.runic.brush.type.earth", "Earth Brush");
@@ -140,6 +142,7 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.tome.learned_all_veiled", "%s hidden meaning(s) sink into your spirit, still sealed from sight.");
 
         add("runic_ascension.runic.casting.hover", "%s | %s | %s");
+        add("runic_ascension.runic.casting.hover.empty", "Hover a rune to read its trace.");
 
         add("runic_ascension.runic.codex.title", "Runic Codex");
         add("runic_ascension.runic.codex.runes", "Known Runes");
@@ -149,6 +152,7 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.codex.select_entry", "Select a rune or sequence to inspect it.");
         add("runic_ascension.runic.codex.page", "%s / %s");
         add("runic_ascension.runic.codex.rune_details", "Type: %s | Depth: %s | Use Realm: %s");
+        add("runic_ascension.runic.codex.rune_observe", "Observe Realm: %s");
         add("runic_ascension.runic.codex.rune_id", "Rune ID: %s");
         add("runic_ascension.runic.codex.sequence_details", "Tier: %s | Min Realm: %s | Qi: %s");
         add("runic_ascension.runic.codex.sequence_formula", "Formula: %s");
@@ -157,6 +161,11 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.codex.unknown", "Unknown");
         add("runic_ascension.runic.codex.none", "None");
         add("runic_ascension.runic.codex.unknown_formula", "Unknown Formula");
+        add("runic_ascension.runic.codex.scrap_hint.title", "Unread Scraps");
+        add("runic_ascension.runic.codex.scrap_hint.line_1", "Right-click runic scraps to press their lessons into this Codex.");
+        add("runic_ascension.runic.codex.scrap_hint.line_2", "When nothing is selected, this panel rotates through recorded notes.");
+        add("runic_ascension.runic.codex.scrap_hint.rune_side", "Rune notes will help explain origins, intent, forms, and modifiers.");
+        add("runic_ascension.runic.codex.scrap_hint.sequence_side", "Sequence notes will help explain formula safety, mastery, and suppression.");
         add("runic_ascension.runic.codex.generated_formula_name", "%s Formula");
         add("runic_ascension.runic.codex.generated_formula_desc", "A %s formula shaped from %s and guided by %s.");
         add("runic_ascension.runic.codex.formula_type", "Type: Discovered Formula");
@@ -246,9 +255,13 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.casting.title", "Runic Casting");
         add("runic_ascension.runic.casting.timer", "Time left: %ss");
         add("runic_ascension.runic.casting.info", "Slots: %s | Time: %ss");
+        add("runic_ascension.runic.casting.sequence_panel.title", "Sequence Reading");
+        add("runic_ascension.runic.casting.realm_info", "Realm %s | Insight %s");
         add("runic_ascension.runic.casting.suppression", "Suppression: Realm %s / %s");
+        add("runic_ascension.runic.casting.suppression.short", "Realm %s / %s");
         add("runic_ascension.runic.casting.suppression.none", "Suppression unavailable.");
         add("runic_ascension.runic.casting.selected.empty", "Selected: none");
+        add("runic_ascension.runic.casting.selected.count", "Selected: %s / %s");
         add("runic_ascension.runic.casting.preview.empty", "Profile: waiting for a source and intent.");
         add("runic_ascension.runic.casting.preview.hint", "Choose runes to let the Codex murmur an estimate.");
         add("runic_ascension.runic.casting.preview.title", "%s | %s");
@@ -315,6 +328,7 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.casting.empty.title", "The script is silent.");
         add("runic_ascension.runic.casting.empty.line_1", "You do not know any usable runes yet.");
         add("runic_ascension.runic.casting.empty.line_2", "Study a Runic Tome to awaken your first script.");
+        add("runic_ascension.runic.casting.empty.line_3", "Scraps now settle into the Codex instead of flooding chat.");
         add("runic_ascension.runic.casting.selected.no_usable", "No usable runes known.");
         add("runic_ascension.runic.casting.close", "Close");
 
