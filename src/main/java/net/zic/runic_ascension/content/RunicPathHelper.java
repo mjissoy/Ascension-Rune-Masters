@@ -11,10 +11,10 @@ import net.zic.runic_ascension.content.runes.IRunicRune;
 import net.zic.runic_ascension.content.runes.ModRunicRunes;
 import net.zic.runic_ascension.core.paths.RunicPaths;
 import net.zic.runic_ascension.core.items.RunicBrushItem;
+import net.zic.runic_ascension.core.items.RunicBrushType;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.ArrayList;
 
 public final class RunicPathHelper {
 
@@ -85,13 +85,38 @@ public final class RunicPathHelper {
             return slots;
         }
 
-        ItemStack mainHand = entity.getMainHandItem();
+        RunicBrushItem brushItem = getHeldRunicBrush(entity);
 
-        if (mainHand.getItem() instanceof RunicBrushItem brushItem) {
+        if (brushItem != null) {
             slots += Math.max(0, brushItem.getExtraRuneSlots());
         }
 
         return slots;
+    }
+
+    public static RunicBrushItem getHeldRunicBrush(LivingEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        ItemStack mainHand = entity.getMainHandItem();
+
+        if (mainHand.getItem() instanceof RunicBrushItem brushItem) {
+            return brushItem;
+        }
+
+        ItemStack offHand = entity.getOffhandItem();
+
+        if (offHand.getItem() instanceof RunicBrushItem brushItem) {
+            return brushItem;
+        }
+
+        return null;
+    }
+
+    public static RunicBrushType getHeldRunicBrushType(LivingEntity entity) {
+        RunicBrushItem brushItem = getHeldRunicBrush(entity);
+        return brushItem == null ? null : brushItem.getBrushType();
     }
 
     public static int getCastingDurationSeconds(IEntityData entityData) {

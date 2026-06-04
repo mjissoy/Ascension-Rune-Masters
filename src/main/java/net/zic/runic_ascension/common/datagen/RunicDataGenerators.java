@@ -28,6 +28,7 @@ public final class RunicDataGenerators {
         generator.addProvider(event.includeClient(), new RunicItemModelProvider(packOutput, existingFileHelper));
         generator.addProvider(event.includeServer(), new RunicLootTableProvider(packOutput, lookupProvider));
         generator.addProvider(event.includeServer(), new RunicGlobalLootModifierProvider(packOutput, lookupProvider));
+        generator.addProvider(event.includeServer(), new RunicRecipeProvider(packOutput, lookupProvider));
 
     }
 }

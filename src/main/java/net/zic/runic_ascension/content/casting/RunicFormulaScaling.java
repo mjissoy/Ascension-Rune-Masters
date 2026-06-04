@@ -5,6 +5,7 @@ import net.thejadeproject.ascension.data_attachments.ModAttachments;
 import net.thejadeproject.ascension.refactor_packages.entity_data.IEntityData;
 import net.thejadeproject.ascension.refactor_packages.stats.Stat;
 import net.thejadeproject.ascension.refactor_packages.stats.custom.ModStats;
+import net.zic.runic_ascension.core.items.RunicBrushType;
 
 public final class RunicFormulaScaling {
 
@@ -154,7 +155,58 @@ public final class RunicFormulaScaling {
                 Math.max(0.05F, stability)
         );
 
+        stats = applyBrush(stats, context.brushType(), profile);
+
         return context.masteryGrade().applyTo(stats);
+    }
+
+    private static RunicFormulaStats applyBrush(
+            RunicFormulaStats stats,
+            RunicBrushType brushType,
+            RunicEffectProfile profile
+    ) {
+        if (brushType == null) {
+            return stats;
+        }
+
+        float damage = stats.damageMultiplier() * brushType.damageMultiplier();
+        float duration = stats.durationMultiplier() * brushType.durationMultiplier();
+        float range = stats.rangeMultiplier() * brushType.rangeMultiplier();
+        float qiCost = stats.qiCostMultiplier() * brushType.qiCostMultiplier();
+        float backlash = stats.backlashMultiplier() * brushType.backlashMultiplier();
+        float stability = stats.stabilityMultiplier() * brushType.stabilityMultiplier();
+
+        // The first brush families lean into identity, not just generic stat bumps.
+        if (brushType == RunicBrushType.EARTH && profile.isDefensive()) {
+            duration *= 1.08F;
+            stability *= 1.08F;
+            backlash *= 0.92F;
+        }
+
+        if (brushType == RunicBrushType.HEAVEN && profile.isHealingFocused()) {
+            damage *= 1.08F;
+            qiCost *= 0.94F;
+            stability *= 1.04F;
+        }
+
+        if (brushType == RunicBrushType.HELL && brushType.isPowerLeaning()) {
+            if (profile.archetype() == RunicEffectArchetype.PROJECTILE
+                    || profile.archetype() == RunicEffectArchetype.LINE
+                    || profile.archetype() == RunicEffectArchetype.AREA) {
+                damage *= 1.08F;
+                backlash *= 1.08F;
+                stability *= 0.96F;
+            }
+        }
+
+        return new RunicFormulaStats(
+                Math.max(0.5F, damage),
+                Math.max(0.5F, duration),
+                Math.max(0.5F, range),
+                Math.max(0.35F, qiCost),
+                Math.max(0.2F, backlash),
+                Math.max(0.05F, stability)
+        );
     }
 
     private static float getStat(LivingEntity entity, Stat stat) {

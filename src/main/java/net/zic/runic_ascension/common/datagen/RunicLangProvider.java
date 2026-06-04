@@ -40,6 +40,9 @@ public class RunicLangProvider extends LanguageProvider {
         add("item.runic_ascension.runic_tome_storm_pierce", "Fragmented Tome: Storm Pierce");
         add("item.runic_ascension.runic_codex", "Runic Codex");
         add("item.runic_ascension.basic_runic_brush", "Basic Runic Brush");
+        add("item.runic_ascension.earth_runic_brush", "Earth Script Brush");
+        add("item.runic_ascension.heaven_runic_brush", "Heaven Script Brush");
+        add("item.runic_ascension.hell_runic_brush", "Hell Script Brush");
 
         add("item.runic_ascension.runic_scrap_origin", "Runic Scrap: Origin");
         add("item.runic_ascension.runic_scrap_intent", "Runic Scrap: Intent");
@@ -50,6 +53,16 @@ public class RunicLangProvider extends LanguageProvider {
         add("item.runic_ascension.runic_scrap_first_formula", "Runic Scrap: First Formula");
         add("item.runic_ascension.runic_scrap_free_casting", "Runic Scrap: Free Casting");
         add("runic_ascension.runic.scrap.tooltip.read", "Right-click to let the words settle in your mind.");
+
+        add("runic_ascension.runic.brush.type.basic", "Basic Brush");
+        add("runic_ascension.runic.brush.type.earth", "Earth Brush");
+        add("runic_ascension.runic.brush.type.heaven", "Heaven Brush");
+        add("runic_ascension.runic.brush.type.hell", "Hell Brush");
+        add("runic_ascension.runic.brush.tooltip.basic", "A steady beginner brush that slightly softens cost and backlash.");
+        add("runic_ascension.runic.brush.tooltip.earth", "A grounded brush that steadies barriers and enduring scripts.");
+        add("runic_ascension.runic.brush.tooltip.heaven", "A precise brush that thins qi cost and lengthens clean formulae.");
+        add("runic_ascension.runic.brush.tooltip.hell", "A hungry brush that deepens power while inviting harsher backlash.");
+        add("runic_ascension.runic.brush.tooltip.slots", "+%s rune slot while held.");
 
         add("runic_ascension.runic.scrap.origin.title", "A Brittle Scrap on Origins");
         add("runic_ascension.runic.scrap.origin.tooltip", "A torn lesson about where formulae begin.");
@@ -242,6 +255,7 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.casting.preview.profile", "Effects: %s");
         add("runic_ascension.runic.casting.preview.stats", "Qi: %s | Stability: %s | Range: %s");
         add("runic_ascension.runic.casting.preview.risk", "Risk: %s | Marks: %s");
+        add("runic_ascension.runic.casting.preview.risk_brush", "Risk: %s | Brush: %s | Marks: %s");
         add("runic_ascension.runic.casting.preview.risk.unknown", "Risk: unreadable.");
         add("runic_ascension.runic.casting.preview.state.valid", "Stable");
         add("runic_ascension.runic.casting.preview.state.unstable", "Unstable");
@@ -250,8 +264,10 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.casting.preview.insight.low.title", "A %s-shape whispers through the mist.");
         add("runic_ascension.runic.casting.preview.insight.low.stats", "Only the broad shape can be felt: %s.");
         add("runic_ascension.runic.casting.preview.insight.low.risk", "The deeper measures remain veiled.");
+        add("runic_ascension.runic.casting.preview.insight.low.risk_brush", "A %s rests in your hand; the deeper measures remain veiled.");
         add("runic_ascension.runic.casting.preview.insight.medium.stats", "Source: %s | Intent: %s | Form: %s");
         add("runic_ascension.runic.casting.preview.insight.medium.risk", "The script's temper reads as: %s.");
+        add("runic_ascension.runic.casting.preview.insight.medium.risk_brush", "Temper: %s | Brush: %s");
         add("runic_ascension.runic.casting.preview.insight.high.stats", "Qi: %s | Stability: %s | Range: %s");
         add("runic_ascension.runic.casting.backspace", "Back");
         add("runic_ascension.runic.casting.clear", "Clear");

@@ -32,7 +32,10 @@ public class RunicItemModelProvider extends ItemModelProvider {
         scrapItem(RunicItems.RUNIC_SCRAP_SUPPRESSION.get());
         scrapItem(RunicItems.RUNIC_SCRAP_FIRST_FORMULA.get());
         scrapItem(RunicItems.RUNIC_SCRAP_FREE_CASTING.get());
-        basicItem(RunicItems.BASIC_RUNIC_BRUSH.get());
+        brushItem(RunicItems.BASIC_RUNIC_BRUSH.get());
+        brushItem(RunicItems.EARTH_RUNIC_BRUSH.get());
+        brushItem(RunicItems.HEAVEN_RUNIC_BRUSH.get());
+        brushItem(RunicItems.HELL_RUNIC_BRUSH.get());
     }
 
 
@@ -44,6 +47,11 @@ public class RunicItemModelProvider extends ItemModelProvider {
     private ItemModelBuilder tomeItem(Item item) {
         return withExistingParent(name(item), mcLoc("item/generated"))
                 .texture("layer0", modLoc("item/runic_tome"));
+    }
+
+    private ItemModelBuilder brushItem(Item item) {
+        return withExistingParent(name(item), mcLoc("item/generated"))
+                .texture("layer0", modLoc("item/basic_runic_brush"));
     }
 
     private String name(Item item) {

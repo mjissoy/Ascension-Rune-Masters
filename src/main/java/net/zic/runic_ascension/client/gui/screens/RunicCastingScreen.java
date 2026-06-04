@@ -402,7 +402,13 @@ public class RunicCastingScreen extends EasyScreen {
                         "runic_ascension.runic.casting.preview.insight.low.stats",
                         formatEnumName(profile.archetype().name())
                 ));
-                previewRiskLabel.setText(Component.translatable("runic_ascension.runic.casting.preview.insight.low.risk"));
+                previewRiskLabel.setText(getPreviewRiskWithOptionalBrush(
+                        "runic_ascension.runic.casting.preview.insight.low.risk",
+                        "runic_ascension.runic.casting.preview.insight.low.risk_brush",
+                        evaluation,
+                        null,
+                        null
+                ));
             }
             case 2 -> {
                 previewStatsLabel.setText(Component.translatable(
@@ -411,9 +417,12 @@ public class RunicCastingScreen extends EasyScreen {
                         formatRuneWord(profile.intentPath()),
                         formatRuneWord(profile.formPath())
                 ));
-                previewRiskLabel.setText(Component.translatable(
+                previewRiskLabel.setText(getPreviewRiskWithOptionalBrush(
                         "runic_ascension.runic.casting.preview.insight.medium.risk",
-                        previewStateName(evaluation)
+                        "runic_ascension.runic.casting.preview.insight.medium.risk_brush",
+                        evaluation,
+                        previewStateName(evaluation),
+                        null
                 ));
             }
             case 3 -> {
@@ -423,8 +432,10 @@ public class RunicCastingScreen extends EasyScreen {
                         describeStability(evaluation.stability()),
                         describeRange(evaluation.stats().rangeMultiplier())
                 ));
-                previewRiskLabel.setText(Component.translatable(
+                previewRiskLabel.setText(getPreviewRiskWithOptionalBrush(
                         "runic_ascension.runic.casting.preview.risk",
+                        "runic_ascension.runic.casting.preview.risk_brush",
+                        evaluation,
                         previewStateName(evaluation),
                         profile.flagsForDisplay()
                 ));
@@ -436,8 +447,10 @@ public class RunicCastingScreen extends EasyScreen {
                         formatPercent(evaluation.stability()),
                         formatMultiplier(evaluation.stats().rangeMultiplier())
                 ));
-                previewRiskLabel.setText(Component.translatable(
+                previewRiskLabel.setText(getPreviewRiskWithOptionalBrush(
                         "runic_ascension.runic.casting.preview.risk",
+                        "runic_ascension.runic.casting.preview.risk_brush",
+                        evaluation,
                         previewStateName(evaluation),
                         profile.flagsForDisplay()
                 ));
@@ -498,6 +511,46 @@ public class RunicCastingScreen extends EasyScreen {
                     Component.translatable("runic_ascension.runic.cast." + evaluation.failureReason())
             );
         };
+    }
+
+    private Component getPreviewRiskWithOptionalBrush(
+            String normalKey,
+            String brushKey,
+            RunicFormulaEvaluation evaluation,
+            Object firstArgument,
+            Object secondArgument
+    ) {
+        Component brushName = getActiveBrushName(evaluation);
+
+        if (brushName == null) {
+            if (firstArgument == null && secondArgument == null) {
+                return Component.translatable(normalKey);
+            }
+
+            if (secondArgument == null) {
+                return Component.translatable(normalKey, firstArgument);
+            }
+
+            return Component.translatable(normalKey, firstArgument, secondArgument);
+        }
+
+        if (firstArgument == null && secondArgument == null) {
+            return Component.translatable(brushKey, brushName);
+        }
+
+        if (secondArgument == null) {
+            return Component.translatable(brushKey, firstArgument, brushName);
+        }
+
+        return Component.translatable(brushKey, firstArgument, brushName, secondArgument);
+    }
+
+    private Component getActiveBrushName(RunicFormulaEvaluation evaluation) {
+        if (evaluation == null || evaluation.context() == null || !evaluation.context().hasBrush()) {
+            return null;
+        }
+
+        return Component.translatable(evaluation.context().brushType().translationKey());
     }
 
     private static String describeQiCost(double qiCost) {

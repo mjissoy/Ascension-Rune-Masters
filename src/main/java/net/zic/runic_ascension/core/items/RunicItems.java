@@ -112,8 +112,25 @@ public final class RunicItems {
     public static final DeferredItem<RunicBrushItem> BASIC_RUNIC_BRUSH = ITEMS.register("basic_runic_brush",
             () -> new RunicBrushItem(
                     new Item.Properties().stacksTo(1),
-                    1,
-                    ModRunicRunes.STABILISE_RUNE.getId()
+                    RunicBrushType.BASIC
+            ));
+
+    public static final DeferredItem<RunicBrushItem> EARTH_RUNIC_BRUSH = ITEMS.register("earth_runic_brush",
+            () -> new RunicBrushItem(
+                    new Item.Properties().stacksTo(1),
+                    RunicBrushType.EARTH
+            ));
+
+    public static final DeferredItem<RunicBrushItem> HEAVEN_RUNIC_BRUSH = ITEMS.register("heaven_runic_brush",
+            () -> new RunicBrushItem(
+                    new Item.Properties().stacksTo(1),
+                    RunicBrushType.HEAVEN
+            ));
+
+    public static final DeferredItem<RunicBrushItem> HELL_RUNIC_BRUSH = ITEMS.register("hell_runic_brush",
+            () -> new RunicBrushItem(
+                    new Item.Properties().stacksTo(1),
+                    RunicBrushType.HELL
             ));
 
     private static DeferredItem<RunicTomeItem> registerFormulaTome(

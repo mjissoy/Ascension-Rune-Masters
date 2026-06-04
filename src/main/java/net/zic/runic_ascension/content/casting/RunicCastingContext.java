@@ -5,6 +5,7 @@ import net.thejadeproject.ascension.data_attachments.ModAttachments;
 import net.thejadeproject.ascension.refactor_packages.entity_data.IEntityData;
 import net.zic.runic_ascension.content.RunicPathHelper;
 import net.zic.runic_ascension.content.RunicPlayerData;
+import net.zic.runic_ascension.core.items.RunicBrushType;
 
 public record RunicCastingContext(
         LivingEntity caster,
@@ -14,6 +15,7 @@ public record RunicCastingContext(
         int selectedSuppressionRealm,
         int maxRuneSlots,
         RunicFormulaMasteryGrade masteryGrade,
+        RunicBrushType brushType,
         double qiCost,
         float stability,
         float backlashMultiplier
@@ -27,6 +29,7 @@ public record RunicCastingContext(
         int effectiveRunicRealm = clampSuppressionRealm(actualRunicRealm, selectedSuppressionRealm);
         int maxRuneSlots = caster == null ? 0 : RunicPathHelper.getRuneSlotCount(caster, true);
         RunicFormulaMasteryGrade masteryGrade = resolveMasteryGrade(caster, formula);
+        RunicBrushType brushType = RunicPathHelper.getHeldRunicBrushType(caster);
 
         return new RunicCastingContext(
                 caster,
@@ -36,6 +39,7 @@ public record RunicCastingContext(
                 effectiveRunicRealm,
                 maxRuneSlots,
                 masteryGrade,
+                brushType,
                 0.0D,
                 1.0F,
                 1.0F
@@ -51,10 +55,19 @@ public record RunicCastingContext(
                 selectedSuppressionRealm,
                 maxRuneSlots,
                 masteryGrade,
+                brushType,
                 qiCost,
                 stability,
                 backlashMultiplier
         );
+    }
+
+    public boolean hasBrush() {
+        return brushType != null;
+    }
+
+    public RunicBrushType effectiveBrushType() {
+        return brushType == null ? null : brushType;
     }
 
     public boolean isSuppressed() {
