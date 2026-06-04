@@ -36,6 +36,7 @@ public final class RunicFormulaInterpreter {
         applySecondaryIntents(builder, formula.intentPaths());
         applySecondaryForms(builder, formula.formPaths());
         applyModifiers(builder, formula.modifierPaths());
+        applyCrossRuneSynergies(builder, formula);
 
         builder.displayName(buildDisplayName(formula));
         return builder.build();
@@ -299,10 +300,10 @@ public final class RunicFormulaInterpreter {
                         .knockback(1.25F)
                         .flag("weight");
                 case "violent" -> builder
-                        .damage(1.35F)
-                        .qiCost(1.24F)
-                        .stability(-0.32F)
-                        .backlash(0.48F)
+                        .damage(1.32F)
+                        .qiCost(1.20F)
+                        .stability(-0.20F)
+                        .backlash(0.28F)
                         .flag("violent");
                 case "hidden" -> builder
                         .damage(0.90F)
@@ -365,6 +366,115 @@ public final class RunicFormulaInterpreter {
                 case "veil" -> builder.duration(1.06F).stability(0.04F).flag("secondary_veil");
                 case "mark" -> builder.duration(1.05F).qiCost(0.98F).flag("secondary_mark");
             }
+        }
+    }
+
+    private static void applyCrossRuneSynergies(RunicEffectProfile.Builder builder, RunicFormula formula) {
+        // These are not new runes. They are the first layer of "meaning between runes":
+        // the same symbol changes character when it stands beside another symbol.
+        if (formula.hasSource("flame") && formula.hasSource("wind")) {
+            builder.damage(1.08F).range(1.08F).area(1.06F).stability(-0.04F).fireSeconds(1)
+                    .flag("spreading_fire")
+                    .flag("cutting_gale");
+        }
+
+        if (formula.hasSource("water") && formula.hasSource("frost")) {
+            builder.duration(1.12F).stability(0.08F).backlash(-0.05F)
+                    .flag("freezing")
+                    .flag("root");
+        }
+
+        if (formula.hasSource("earth") && formula.hasSource("metal")) {
+            builder.damage(1.04F).duration(1.10F).stability(0.12F).backlash(-0.06F)
+                    .flag("fortify")
+                    .flag("hardened");
+        }
+
+        if (formula.hasSource("life") && formula.hasSource("wood")) {
+            builder.healing(1.16F).duration(1.10F).qiCost(0.96F).stability(0.06F)
+                    .flag("mending")
+                    .flag("regenerative");
+        }
+
+        if (formula.hasSource("light") && formula.hasSource("shadow")) {
+            builder.damage(1.12F).range(1.05F).stability(-0.14F).backlash(0.12F)
+                    .flag("eclipse")
+                    .flag("reveal")
+                    .flag("blind");
+        }
+
+        if (formula.hasSource("shadow") && formula.hasSource("decay")) {
+            builder.damage(1.12F).duration(1.08F).stability(-0.06F).backlash(0.06F)
+                    .flag("erosion")
+                    .flag("corruptive");
+        }
+
+        if (formula.hasSource("lightning") && formula.hasSource("metal")) {
+            builder.damage(1.10F).range(1.08F).qiCost(1.04F).stability(-0.03F)
+                    .flag("conductive")
+                    .flag("chain_lightning");
+        }
+
+        if (formula.hasSource("lightning") && formula.hasSource("wind")) {
+            builder.damage(1.08F).range(1.12F).knockback(1.08F).stability(-0.05F)
+                    .flag("storm")
+                    .flag("stun");
+        }
+
+        if (formula.hasSource("water") && formula.hasSource("lightning")) {
+            builder.area(1.08F).qiCost(1.06F).stability(-0.04F)
+                    .flag("conductive")
+                    .flag("shock");
+        }
+
+        if (formula.hasSource("flame") && formula.hasSource("earth")) {
+            builder.damage(1.06F).duration(1.06F).stability(0.02F)
+                    .flag("molten")
+                    .flag("pressure");
+        }
+
+        if (formula.hasSource("flame") && formula.hasIntent("cut")) {
+            builder.damage(1.05F).fireSeconds(1).flag("searing_edge");
+        }
+
+        if (formula.hasSource("frost") && formula.hasIntent("bind")) {
+            builder.duration(1.12F).stability(0.04F).flag("root").flag("freezing");
+        }
+
+        if (formula.hasSource("earth") && formula.hasIntent("guard")) {
+            builder.duration(1.12F).stability(0.10F).backlash(-0.05F).flag("fortify");
+        }
+
+        if (formula.hasSource("wind") && (formula.hasIntent("push") || formula.hasIntent("pull"))) {
+            builder.range(1.10F).knockback(1.18F).qiCost(0.96F).flag("cutting_gale");
+        }
+
+        if (formula.hasSource("lightning") && formula.hasIntent("pierce")) {
+            builder.damage(1.10F).range(1.06F).stability(-0.02F).flag("stun").flag("chain_lightning");
+        }
+
+        if ((formula.hasSource("life") || formula.hasSource("water") || formula.hasSource("wood")) && formula.hasIntent("heal")) {
+            builder.healing(1.14F).stability(0.06F).flag("mending");
+        }
+
+        if ((formula.hasSource("decay") || formula.hasSource("shadow")) && formula.hasIntent("compress")) {
+            builder.damage(1.08F).duration(1.08F).flag("erosion").flag("pressure");
+        }
+
+        if (formula.hasSource("light") && formula.hasForm("mark")) {
+            builder.range(1.06F).qiCost(0.96F).flag("reveal");
+        }
+
+        if (formula.hasModifier("hidden") && formula.hasSource("shadow")) {
+            builder.stability(0.04F).qiCost(0.96F).flag("obscured").flag("eclipse");
+        }
+
+        if (formula.hasModifier("stabilise") && (formula.hasSource("earth") || formula.hasSource("water") || formula.hasIntent("guard"))) {
+            builder.stability(0.12F).backlash(-0.08F).flag("anchored_script");
+        }
+
+        if (formula.hasModifier("violent") && formula.hasModifier("stabilise")) {
+            builder.stability(0.10F).backlash(-0.08F).flag("leashed_violence");
         }
     }
 

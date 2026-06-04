@@ -10,6 +10,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
@@ -183,8 +184,25 @@ public final class RunicFormulaCaster {
     }
 
     private static boolean shouldUnstableFormulaCollapse(ServerLevel level, RunicFormulaEvaluation evaluation) {
+        // Valid grammar should usually produce an effect, even when the script is ugly.
+        // Collapse is reserved for truly low-stability formulas instead of punishing
+        // every creative-but-rough sequence with immediate backlash roulette.
+        if (evaluation.stability() >= 0.65F) {
+            return false;
+        }
+
         float instability = Math.max(0.0F, 1.0F - evaluation.stability());
-        float collapseChance = Math.min(0.75F, Math.max(0.05F, instability * evaluation.stats().backlashMultiplier()));
+        float collapseChance = (instability - 0.25F) * 0.55F * evaluation.stats().backlashMultiplier();
+
+        if (evaluation.profile().hasFlag("stable")) {
+            collapseChance *= 0.55F;
+        }
+
+        if (evaluation.profile().hasFlag("violent")) {
+            collapseChance *= 1.18F;
+        }
+
+        collapseChance = Math.min(0.50F, Math.max(0.0F, collapseChance));
         return level.random.nextFloat() < collapseChance;
     }
 
@@ -198,6 +216,10 @@ public final class RunicFormulaCaster {
                 * stats.rangeMultiplier()
                 * profile.areaMultiplier();
 
+        if (isSupportFormula(formula, profile)) {
+            applyIntentToSelf(caster, formula, stats, profile);
+        }
+
         List<LivingEntity> targets = level.getEntitiesOfClass(
                 LivingEntity.class,
                 caster.getBoundingBox().inflate(range),
@@ -205,7 +227,13 @@ public final class RunicFormulaCaster {
         );
 
         for (LivingEntity target : targets) {
-            applyIntentToTarget(caster, target, formula, stats, profile, 0.75F);
+            if (isSupportFormula(formula, profile)) {
+                if (isFriendlyTarget(caster, target)) {
+                    applyIntentToTarget(caster, target, formula, stats, profile, 0.65F);
+                }
+            } else {
+                applyIntentToTarget(caster, target, formula, stats, profile, 0.75F);
+            }
         }
 
         spawnSelfParticles(level, caster, particleFor(formula, profile));
@@ -226,8 +254,37 @@ public final class RunicFormulaCaster {
     }
 
     private static void castWall(ServerLevel level, LivingEntity caster, RunicFormula formula, RunicFormulaStats stats, RunicEffectProfile profile) {
-        caster.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, duration(formula, stats, profile), formula.hasModifier("stabilise") ? 1 : 0));
-        caster.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, duration(formula, stats, profile), 0));
+        int duration = duration(formula, stats, profile);
+
+        if (isSupportFormula(formula, profile) || formula.hasIntent("guard")) {
+            caster.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, duration, formula.hasModifier("stabilise") ? 1 : 0));
+            caster.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, duration, profile.isDefensive() ? 1 : 0));
+        }
+
+        double range = 3.5D * stats.rangeMultiplier() * Math.max(0.85D, profile.areaMultiplier());
+        Vec3 start = caster.getEyePosition();
+        Vec3 direction = caster.getViewVector(0.0F);
+        AABB box = caster.getBoundingBox()
+                .expandTowards(direction.scale(range))
+                .inflate(1.0D + profile.areaMultiplier() * 0.45D);
+
+        List<LivingEntity> targets = level.getEntitiesOfClass(
+                LivingEntity.class,
+                box,
+                entity -> entity != caster && entity.isAlive()
+        );
+
+        for (LivingEntity target : targets) {
+            if (isSupportFormula(formula, profile)) {
+                if (isFriendlyTarget(caster, target)) {
+                    applyIntentToTarget(caster, target, formula, stats, profile, 0.55F);
+                }
+            } else if (isControlFormula(formula, profile) || isOffensiveFormula(formula, profile)) {
+                applyIntentToTarget(caster, target, formula, stats, profile, 0.55F);
+            }
+        }
+
+        spawnParticleLine(level, particleFor(formula, profile), start, start.add(direction.scale(range)), 10);
         spawnSelfParticles(level, caster, particleFor(formula, profile));
     }
 
@@ -254,10 +311,21 @@ public final class RunicFormulaCaster {
     }
 
     private static void castBolt(ServerLevel level, LivingEntity caster, RunicFormula formula, RunicFormulaStats stats, RunicEffectProfile profile) {
-        LivingEntity target = findLookedAtLivingEntity(caster, 10.0D * stats.rangeMultiplier());
+        LivingEntity target = findLookedAtLivingEntity(caster, 10.0D * stats.rangeMultiplier() * profile.rangeMultiplier());
 
         if (target == null) {
-            spawnSelfParticles(level, caster, ParticleTypes.POOF);
+            if (isSupportFormula(formula, profile)) {
+                applyIntentToSelf(caster, formula, stats, profile);
+                spawnSelfParticles(level, caster, particleFor(formula, profile));
+            } else {
+                spawnParticleLine(
+                        level,
+                        particleFor(formula, profile),
+                        caster.getEyePosition(),
+                        caster.getEyePosition().add(caster.getViewVector(0.0F).scale(6.0D * stats.rangeMultiplier())),
+                        8
+                );
+            }
             return;
         }
 
@@ -272,12 +340,17 @@ public final class RunicFormulaCaster {
             case "heal", "gather" -> {
                 float healing = formula.sourcePath().equals("life") || formula.sourcePath().equals("water") ? 8.0F : 4.0F;
                 caster.heal(healing * profile.healingMultiplier());
-                caster.addEffect(new MobEffectInstance(MobEffects.REGENERATION, duration / 2, 0));
+                caster.addEffect(new MobEffectInstance(MobEffects.REGENERATION, duration / 2, profile.healingMultiplier() > 1.35F ? 1 : 0));
             }
-            case "guard", "bind", "compress" -> caster.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, duration, 0));
+            case "guard", "bind", "compress" -> {
+                caster.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, duration, profile.isDefensive() ? 1 : 0));
+                if (profile.hasFlag("fortify") || profile.hasFlag("hardened")) {
+                    caster.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, duration, 0));
+                }
+            }
             case "push", "release" -> caster.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, duration, formula.hasModifier("quicken") ? 1 : 0));
             case "pull" -> caster.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, duration / 2, 0));
-            case "cut", "pierce" -> caster.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, duration, 0));
+            case "cut", "pierce" -> caster.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, duration, profile.hasFlag("violent") ? 1 : 0));
         }
 
         applySourceSelfBonus(caster, formula, stats, profile);
@@ -285,23 +358,53 @@ public final class RunicFormulaCaster {
 
     private static void applyIntentToTarget(LivingEntity caster, LivingEntity target, RunicFormula formula, RunicFormulaStats stats, RunicEffectProfile profile, float multiplier) {
         float damage = baseDamage(formula, stats, profile) * multiplier;
+        int duration = duration(formula, stats, profile);
 
         switch (formula.intentPath()) {
             case "cut" -> hurtWithRunicDamage(caster, target, damage + 2.0F);
-            case "pierce" -> hurtWithRunicDamage(caster, target, damage + 4.0F);
+            case "pierce" -> {
+                hurtWithRunicDamage(caster, target, damage + 4.0F);
+                if (profile.hasFlag("armor_piercing")) {
+                    target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, Math.max(40, duration / 2), 0));
+                }
+            }
             case "compress" -> {
                 hurtWithRunicDamage(caster, target, damage + 1.0F);
-                target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, duration(formula, stats, profile) / 2, 1));
+                target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, duration / 2, 1));
+                target.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, duration / 2, 0));
             }
-            case "bind" -> target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, duration(formula, stats, profile), formula.hasModifier("heavy") ? 3 : 1));
-            case "push" -> pushAway(caster, target, formula, profile);
-            case "pull" -> pullToward(caster, target, formula, profile);
-            case "guard" -> target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, duration(formula, stats, profile), 0));
-            case "heal", "gather" -> {
-                if (isPositiveSource(formula)) {
-                    target.heal((3.0F + multiplier * 3.0F) * profile.healingMultiplier());
+            case "bind" -> {
+                target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, duration, formula.hasModifier("heavy") ? 3 : 1));
+                if (profile.hasFlag("rooting") || profile.hasFlag("root")) {
+                    target.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, duration, 0));
+                }
+            }
+            case "push" -> {
+                if (profile.hasFlag("cutting_gale") || profile.hasFlag("storm")) {
+                    hurtWithRunicDamage(caster, target, damage * 0.45F);
+                }
+                pushAway(caster, target, formula, profile);
+            }
+            case "pull" -> {
+                pullToward(caster, target, formula, profile);
+                if (profile.hasFlag("gravity") || profile.hasFlag("pressure")) {
+                    target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, Math.max(40, duration / 3), 0));
+                }
+            }
+            case "guard" -> {
+                if (isFriendlyTarget(caster, target) && isPositiveSource(formula)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, duration, 0));
+                    target.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, duration, 0));
                 } else {
-                    hurtWithRunicDamage(caster, target, damage);
+                    target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, duration, 0));
+                }
+            }
+            case "heal", "gather" -> {
+                if (isPositiveSource(formula) && isFriendlyTarget(caster, target)) {
+                    target.heal((3.0F + multiplier * 3.0F) * profile.healingMultiplier());
+                    target.addEffect(new MobEffectInstance(MobEffects.REGENERATION, Math.max(40, duration / 3), 0));
+                } else if (!isPositiveSource(formula)) {
+                    hurtWithRunicDamage(caster, target, damage * 0.85F);
                 }
             }
             case "release" -> {
@@ -353,16 +456,20 @@ public final class RunicFormulaCaster {
             caster.clearFire();
         }
 
-        if (profile.hasFlag("regenerative")) {
-            caster.addEffect(new MobEffectInstance(MobEffects.REGENERATION, Math.max(40, duration / 2), 0));
+        if (profile.hasFlag("regenerative") || profile.hasFlag("mending")) {
+            caster.addEffect(new MobEffectInstance(MobEffects.REGENERATION, Math.max(40, duration / 2), profile.hasFlag("mending") ? 1 : 0));
         }
 
-        if (profile.hasFlag("swift")) {
+        if (profile.hasFlag("swift") || profile.hasFlag("storm")) {
             caster.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, duration, profile.mobilityMultiplier() > 1.2F ? 1 : 0));
         }
 
-        if (profile.hasFlag("defensive") || profile.hasFlag("barrier") || profile.hasFlag("grounded")) {
+        if (profile.hasFlag("defensive") || profile.hasFlag("barrier") || profile.hasFlag("grounded") || profile.hasFlag("fortify")) {
             caster.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, duration, profile.isDefensive() ? 1 : 0));
+        }
+
+        if (profile.hasFlag("fortify") || profile.hasFlag("hardened")) {
+            caster.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, duration, 0));
         }
 
         if (profile.hasFlag("stealth") || profile.hasFlag("obscured")) {
@@ -379,28 +486,98 @@ public final class RunicFormulaCaster {
             target.clearFire();
         }
 
-        if (profile.hasFlag("slow") || profile.hasFlag("chill") || profile.hasFlag("restraint")) {
-            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, Math.max(40, duration / 2), profile.hasFlag("restraint") ? 1 : 0));
+        if (profile.hasFlag("slow") || profile.hasFlag("chill") || profile.hasFlag("restraint") || profile.hasFlag("root")) {
+            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, Math.max(40, duration / 2), profile.hasFlag("restraint") || profile.hasFlag("root") ? 1 : 0));
         }
 
-        if (profile.hasFlag("shock") || profile.hasFlag("weakening")) {
+        if (profile.hasFlag("root") || profile.hasFlag("pressure") || profile.hasFlag("stun")) {
+            target.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, Math.max(40, duration / 2), profile.hasFlag("stun") ? 1 : 0));
+        }
+
+        if (profile.hasFlag("shock") || profile.hasFlag("weakening") || profile.hasFlag("storm")) {
             target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, Math.max(40, duration / 2), 0));
         }
 
-        if (profile.hasFlag("blind") || profile.hasFlag("obscured")) {
+        if (profile.hasFlag("blind") || profile.hasFlag("obscured") || profile.hasFlag("eclipse")) {
             target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, Math.max(30, duration / 3), 0));
         }
 
-        if (profile.hasFlag("wither") || profile.hasFlag("corruptive")) {
-            target.addEffect(new MobEffectInstance(MobEffects.WITHER, Math.max(40, duration / 3), 0));
+        if (profile.hasFlag("wither") || profile.hasFlag("corruptive") || profile.hasFlag("erosion")) {
+            target.addEffect(new MobEffectInstance(MobEffects.WITHER, Math.max(40, duration / 3), profile.hasFlag("erosion") ? 1 : 0));
         }
 
         if (profile.hasFlag("reveal") || profile.hasFlag("mark")) {
             target.addEffect(new MobEffectInstance(MobEffects.GLOWING, Math.max(40, duration / 2), 0));
         }
 
-        if (profile.hasFlag("secondary_wind") || profile.hasFlag("secondary_push")) {
+        if (profile.hasFlag("secondary_wind") || profile.hasFlag("secondary_push") || profile.hasFlag("cutting_gale")) {
             pushAway(caster, target, formula, profile);
+        }
+
+        if (profile.hasFlag("chain_lightning") || profile.hasFlag("conductive")) {
+            arcToNearbyTargets(caster, target, duration, profile);
+        }
+    }
+
+    private static boolean isSupportFormula(RunicFormula formula, RunicEffectProfile profile) {
+        return profile.isHealingFocused()
+                || profile.hasFlag("support")
+                || profile.hasFlag("mending")
+                || formula.hasIntent("heal")
+                || (formula.hasIntent("gather") && isPositiveSource(formula));
+    }
+
+    private static boolean isControlFormula(RunicFormula formula, RunicEffectProfile profile) {
+        return formula.hasIntent("bind")
+                || formula.hasIntent("push")
+                || formula.hasIntent("pull")
+                || formula.hasIntent("compress")
+                || profile.hasFlag("slow")
+                || profile.hasFlag("root")
+                || profile.hasFlag("stun")
+                || profile.hasFlag("restraint");
+    }
+
+    private static boolean isOffensiveFormula(RunicFormula formula, RunicEffectProfile profile) {
+        return formula.hasIntent("cut")
+                || formula.hasIntent("pierce")
+                || formula.hasIntent("release")
+                || !isPositiveSource(formula)
+                || profile.hasFlag("slash")
+                || profile.hasFlag("violent")
+                || profile.hasFlag("corruptive");
+    }
+
+    private static boolean isFriendlyTarget(LivingEntity caster, LivingEntity target) {
+        if (target == caster) {
+            return true;
+        }
+
+        return caster instanceof Player && target instanceof Player;
+    }
+
+    private static void arcToNearbyTargets(LivingEntity caster, LivingEntity firstTarget, int duration, RunicEffectProfile profile) {
+        if (!(firstTarget.level() instanceof ServerLevel level)) {
+            return;
+        }
+
+        double range = profile.hasFlag("conductive") ? 3.0D : 2.25D;
+        List<LivingEntity> nearby = level.getEntitiesOfClass(
+                LivingEntity.class,
+                firstTarget.getBoundingBox().inflate(range),
+                entity -> entity != caster && entity != firstTarget && entity.isAlive()
+        );
+
+        int arcs = 0;
+        for (LivingEntity secondary : nearby) {
+            if (arcs >= 2) {
+                break;
+            }
+
+            secondary.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, Math.max(30, duration / 3), 0));
+            hurtWithRunicDamage(caster, secondary, 2.0F * profile.damageMultiplier());
+            spawnParticleLine(level, ParticleTypes.ELECTRIC_SPARK, firstTarget.getBoundingBox().getCenter(), secondary.getBoundingBox().getCenter(), 6);
+            arcs++;
         }
     }
 

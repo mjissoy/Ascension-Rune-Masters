@@ -47,8 +47,8 @@ public final class RunicFormulaScaling {
         qiCost += Math.max(0, formula.sourceCount() - 1) * 0.28F;
         qiCost += Math.max(0, formula.intentCount() - 1) * 0.22F;
         qiCost += Math.max(0, formula.formCount() - 1) * 0.18F;
-        backlash += Math.max(0, formula.grammaticalWeight() - 4) * 0.06F;
-        stability -= Math.max(0, formula.grammaticalWeight() - 4) * 0.035F;
+        backlash += Math.max(0, formula.grammaticalWeight() - 4) * 0.04F;
+        stability -= Math.max(0, formula.grammaticalWeight() - 4) * 0.025F;
 
         if (formula.hasIntent("cut") || formula.hasIntent("pierce")) {
             damage += strength * 0.012F;
@@ -100,27 +100,27 @@ public final class RunicFormulaScaling {
         }
 
         if (formula.hasModifier("violent")) {
-            damage += 0.45F;
-            backlash += 0.7F;
-            qiCost += 0.35F;
-            stability -= 0.45F;
+            damage += 0.42F;
+            backlash += 0.42F;
+            qiCost += 0.30F;
+            stability -= 0.26F;
         }
 
         if (formula.hasModifier("heavy")) {
             duration += 0.25F;
             qiCost += 0.2F;
-            stability -= 0.10F;
+            stability -= 0.06F;
         }
 
         if (formula.hasModifier("quicken")) {
             duration -= 0.2F;
             qiCost += 0.1F;
-            stability -= 0.08F;
+            stability -= 0.05F;
         }
 
         if (formula.hasModifier("stabilise")) {
             backlash -= 0.4F;
-            damage -= 0.15F;
+            damage -= 0.10F;
             stability += 0.45F;
         }
 
