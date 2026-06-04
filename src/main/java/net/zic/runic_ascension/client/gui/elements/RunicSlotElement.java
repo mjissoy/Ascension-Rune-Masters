@@ -12,10 +12,14 @@ public class RunicSlotElement extends RenderableElement {
     private boolean filled;
 
     public RunicSlotElement(UIFrame frame, int x, int y, int size, int index) {
+        this(frame, x, y, size, size, index);
+    }
+
+    public RunicSlotElement(UIFrame frame, int x, int y, int width, int height, int index) {
         super(frame, x, y);
         this.index = index;
-        setWidth(size);
-        setHeight(size);
+        setWidth(width);
+        setHeight(height);
     }
 
     public void setRuneName(Component runeName) {
@@ -26,11 +30,14 @@ public class RunicSlotElement extends RenderableElement {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         boolean hovered = isPointBounded(mouseX, mouseY);
-        int fill = filled ? 0xAA4F2D85 : 0x7712091F;
+        int fill = filled ? 0xCC5A3691 : 0xAA12091F;
+        int innerFill = filled ? 0x66351E5A : 0x441B0F2C;
         int outline = hovered || filled ? RunicGuiTheme.BORDER : RunicGuiTheme.BORDER_MUTED;
 
         guiGraphics.fill(0, 0, getWidth(), getHeight(), fill);
+        guiGraphics.fill(2, 2, getWidth() - 2, getHeight() - 2, innerFill);
         guiGraphics.renderOutline(0, 0, getWidth(), getHeight(), outline);
+        guiGraphics.renderOutline(2, 2, getWidth() - 4, getHeight() - 4, filled ? RunicGuiTheme.ACCENT : RunicGuiTheme.BORDER_DARK);
 
         Minecraft minecraft = Minecraft.getInstance();
         Component text = filled ? shortName(runeName) : Component.literal(String.valueOf(index + 1));
@@ -46,11 +53,11 @@ public class RunicSlotElement extends RenderableElement {
     }
 
     private static Component shortName(Component name) {
-        String value = name.getString();
-        if (value.length() <= 3) {
+        String value = name.getString().trim();
+        if (value.length() <= 5) {
             return Component.literal(value);
         }
 
-        return Component.literal(value.substring(0, 3));
+        return Component.literal(value.substring(0, 5));
     }
 }
