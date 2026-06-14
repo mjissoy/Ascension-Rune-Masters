@@ -1,0 +1,14 @@
+{
+  "type": "neoforge:add_table",
+  "conditions": [
+    {
+      "condition": "neoforge:loot_table_id",
+      "loot_table_id": "minecraft:chests/stronghold_library"
+    },
+    {
+      "chance": 0.12,
+      "condition": "minecraft:random_chance"
+    }
+  ],
+  "table": "runic_ascension:inject/runic_utility_rare"
+}

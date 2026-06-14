@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "B": {
+      "item": "runic_ascension:basic_runic_brush"
+    },
+    "F": {
+      "item": "minecraft:feather"
+    },
+    "G": {
+      "item": "minecraft:glowstone_dust"
+    },
+    "S": {
+      "item": "ascension:spiritual_stone"
+    }
+  },
+  "pattern": [
+    "GSG",
+    "ABA",
+    "GFG"
+  ],
+  "result": {
+    "count": 1,
+    "id": "runic_ascension:heaven_runic_brush"
+  }
+}

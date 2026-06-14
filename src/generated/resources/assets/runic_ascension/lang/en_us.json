@@ -390,10 +390,16 @@
   "runic_ascension.skill.trace_step.description": "Steps through a thin wind-veiled trace. Range increases with Runic realm. Requires the Wind and Veil runes.",
   "runic_ascension.skill.water_mantle": "Water Mantle",
   "runic_ascension.skill.water_mantle.description": "Wraps the caster in flowing script while held, consuming qi over time. The mantle extinguishes flame, mends wounds, and dampens incoming force. Requires the Water and Heal runes.",
-  "runic_ascension.technique.basic_runic_script": "Basic Runic Script",
-  "runic_ascension.technique.basic_runic_script.description": "A beginner Runic Path technique that teaches the cultivator how to arrange known runes into simple castable sequences.",
-  "runic_ascension.technique.basic_runic_script.description.short": "A simple script for tracing and casting basic runic sequences.",
+  "runic_ascension.technique.inner_inscription_method": "Inner Inscription Method",
+  "runic_ascension.technique.inner_inscription_method.description": "A Runic Path technique that turns the body into a vessel for stable script. It favours vitality, endurance, defensive wards, and future body inscription effects.",
+  "runic_ascension.technique.inner_inscription_method.description.short": "A defensive runic technique focused on the body and inscriptions.",
+  "runic_ascension.technique.outer_formula_method": "Outer Formula Method",
+  "runic_ascension.technique.outer_formula_method.description": "A Runic Path technique that writes command into the world rather than the body. It favours intelligence, offensive formulae, ranged scriptwork, and future external rune manipulation.",
+  "runic_ascension.technique.outer_formula_method.description.short": "An offensive runic technique focused on external formulae.",
   "runic_ascension.technique.runic_apprentice": "Runic Apprentice",
   "runic_ascension.technique.runic_apprentice.description": "A foundational runic technique that teaches the cultivator to perceive traces, arrange symbols, and begin shaping formulae through the Runic Path.",
-  "runic_ascension.technique.runic_apprentice.description.short": "A beginner technique for sensing and shaping runic traces."
+  "runic_ascension.technique.runic_apprentice.description.short": "A beginner technique for sensing and shaping runic traces.",
+  "runic_ascension.technique.trace_visualization_method": "Trace Visualization Method",
+  "runic_ascension.technique.trace_visualization_method.description": "A Runic Path technique that sharpens the inner eye and follows hidden traces through the world. It favours intelligence, agility, Runic Sight, Trace Step, and future discovery-based progression.",
+  "runic_ascension.technique.trace_visualization_method.description.short": "A perception-focused runic technique for sight, movement, and discovery."
 }

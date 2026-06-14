@@ -1,0 +1,40 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:basic_runic_brush",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_inscription_seal",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:runic_codex",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:earth_runic_brush",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:heaven_runic_brush"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "runic_ascension:hell_runic_brush"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "runic_ascension:inject/runic_utility_rare"
+}

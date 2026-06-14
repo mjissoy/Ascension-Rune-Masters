@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "runic_ascension:basic_runic_brush"
+    },
+    "D": {
+      "item": "minecraft:deepslate"
+    },
+    "E": {
+      "item": "ascension:earth_core"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "pattern": [
+    "DED",
+    "EBE",
+    "DID"
+  ],
+  "result": {
+    "count": 1,
+    "id": "runic_ascension:earth_runic_brush"
+  }
+}

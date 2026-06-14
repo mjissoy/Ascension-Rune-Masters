@@ -77,6 +77,21 @@ public class RunicLootTableProvider extends LootTableProvider {
                                     .add(LootItem.lootTableItem(RunicItems.RUNIC_TOME_STORM_PIERCE.get()).setWeight(1))
                             )
             );
+
+            consumer.accept(
+                    RunicLootTables.RUNIC_UTILITY_RARE,
+                    LootTable.lootTable()
+                            .withPool(LootPool.lootPool()
+                                    .setRolls(ConstantValue.exactly(1))
+                                    .add(LootItem.lootTableItem(RunicItems.BASIC_RUNIC_BRUSH.get()).setWeight(5))
+                                    .add(LootItem.lootTableItem(RunicItems.RUNIC_INSCRIPTION_SEAL.get()).setWeight(4))
+                                    .add(LootItem.lootTableItem(RunicItems.RUNIC_CODEX.get()).setWeight(3))
+                                    .add(LootItem.lootTableItem(RunicItems.EARTH_RUNIC_BRUSH.get()).setWeight(2))
+                                    .add(LootItem.lootTableItem(RunicItems.HEAVEN_RUNIC_BRUSH.get()).setWeight(1))
+                                    .add(LootItem.lootTableItem(RunicItems.HELL_RUNIC_BRUSH.get()).setWeight(1))
+                            )
+            );
+
         }
     }
 }

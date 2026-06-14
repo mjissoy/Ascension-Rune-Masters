@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "runic_ascension:basic_runic_brush"
+    },
+    "C": {
+      "item": "minecraft:coal"
+    },
+    "F": {
+      "item": "ascension:fire_core"
+    },
+    "M": {
+      "item": "minecraft:magma_cream"
+    },
+    "P": {
+      "item": "minecraft:blaze_powder"
+    }
+  },
+  "pattern": [
+    "PFP",
+    "CBC",
+    "PMP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "runic_ascension:hell_runic_brush"
+  }
+}

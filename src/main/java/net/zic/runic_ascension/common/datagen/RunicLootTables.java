@@ -14,6 +14,9 @@ public final class RunicLootTables {
     public static final ResourceKey<LootTable> STARTER_DISCOVERY_LIBRARY =
             create("inject/starter_discovery_library");
 
+    public static final ResourceKey<LootTable> RUNIC_UTILITY_RARE =
+            create("inject/runic_utility_rare");
+
     private RunicLootTables() {
     }
 

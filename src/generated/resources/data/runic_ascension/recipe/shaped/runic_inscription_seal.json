@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "ascension:spiritual_stone"
+    },
+    "C": {
+      "item": "ascension:black_iron_ingot"
+    },
+    "I": {
+      "item": "minecraft:iron_nugget"
+    }
+  },
+  "pattern": [
+    " A ",
+    "CIC",
+    " A "
+  ],
+  "result": {
+    "count": 1,
+    "id": "runic_ascension:runic_inscription_seal"
+  }
+}

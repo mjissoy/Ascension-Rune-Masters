@@ -1,0 +1,16 @@
+{
+  "type": "ascension:add_bloodline_random_purity",
+  "bloodlineId": "runic_ascension:ink_blood_lineage",
+  "conditions": [
+    {
+      "condition": "neoforge:loot_table_id",
+      "loot_table_id": "minecraft:chests/ancient_city"
+    },
+    {
+      "chance": 0.045,
+      "condition": "minecraft:random_chance"
+    }
+  ],
+  "maxPurity": 55,
+  "minPurity": 15
+}
