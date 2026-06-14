@@ -19,11 +19,11 @@ import net.zic.runic_ascension.util.RunicInscriptionHelper;
 
 public class TraceStep extends AbstractRunicActiveSkill {
 
-    private static final double QI_COST = 10.0D;
-    private static final double BASE_RANGE = 4.0D;
-    private static final double RANGE_PER_REALM = 1.0D;
+    private static final double QI_COST = 8.0D;
+    private static final double BASE_RANGE = 8.0D;
+    private static final double RANGE_PER_REALM = 2.0D;
     private static final double STEP_SIZE = 0.25D;
-    private static final int COOLDOWN_TICKS = 35;
+    private static final int COOLDOWN_TICKS = 18;
 
     @Override
     protected String translationKey() {
@@ -45,8 +45,6 @@ public class TraceStep extends AbstractRunicActiveSkill {
         if (!(caster instanceof ServerPlayer player)) return;
         if (player.level().isClientSide()) return;
 
-        if (!tryConsumeQi(player, QI_COST)) return;
-
         Vec3 look = player.getLookAngle();
         Vec3 direction = new Vec3(look.x, 0.0D, look.z);
 
@@ -59,9 +57,20 @@ public class TraceStep extends AbstractRunicActiveSkill {
         Vec3 start = player.position();
         Vec3 destination = resolveSmartDestination(player, direction, range(player));
 
-        spawnStepParticles(player.serverLevel(), start, player.getBbHeight());
+        if (destination.distanceToSqr(start) < 0.25D) {
+            return;
+        }
+
+        if (!tryConsumeQi(player, QI_COST)) return;
+
+        ServerLevel level = player.serverLevel();
+
+        spawnStepParticles(level, start, player.getBbHeight());
+        spawnTraceLine(level, start, destination, player.getBbHeight());
+
         player.teleportTo(destination.x, destination.y, destination.z);
-        spawnStepParticles(player.serverLevel(), destination, player.getBbHeight());
+
+        spawnStepParticles(level, destination, player.getBbHeight());
 
         player.resetFallDistance();
 
@@ -70,11 +79,12 @@ public class TraceStep extends AbstractRunicActiveSkill {
                 destination.x,
                 destination.y,
                 destination.z,
-                SoundEvents.ENDERMAN_TELEPORT,
+                SoundEvents.AMETHYST_BLOCK_CHIME,
                 SoundSource.PLAYERS,
-                0.35F,
-                1.75F
+                0.45F,
+                1.65F
         );
+
         RunicInscriptionHelper.afterTraceStep(player);
     }
 
@@ -89,31 +99,55 @@ public class TraceStep extends AbstractRunicActiveSkill {
         Vec3 best = origin;
 
         int steps = (int) Math.ceil(range / STEP_SIZE);
+        int consecutiveFailures = 0;
 
         for (int i = 1; i <= steps; i++) {
             double distance = Math.min(i * STEP_SIZE, range);
             Vec3 base = origin.add(direction.scale(distance));
 
-            Vec3 safe = findNearbySafeStep(player, base, origin.y);
+            Vec3 safe = findNearbySafeStep(player, base, direction, origin.y);
 
             if (safe == null) {
-                break;
+                consecutiveFailures++;
+                if (consecutiveFailures >= 6 && best.distanceToSqr(origin) > 0.25D) {
+                    break;
+                }
+
+                continue;
             }
 
+            consecutiveFailures = 0;
             best = safe;
         }
 
         return best;
     }
 
-    private Vec3 findNearbySafeStep(ServerPlayer player, Vec3 base, double originY) {
-        double[] yOffsets = {0.0D, 0.25D, 0.5D, 0.75D, 1.0D, 1.25D, 1.5D, 2.0D, -0.25D, -0.5D, -0.75D, -1.0D};
+    private Vec3 findNearbySafeStep(ServerPlayer player, Vec3 base, Vec3 direction, double originY) {
+        double[] yOffsets = {0.0D, 0.05D, 0.25D, 0.5D, 0.75D, 1.0D, 1.25D, 1.5D, 2.0D, -0.05D, -0.25D, -0.5D, -0.75D, -1.0D};
+
+        Vec3 side = new Vec3(-direction.z, 0.0D, direction.x);
+
+        if (side.lengthSqr() > 0.001D) {
+            side = side.normalize();
+        }
+
+        double[] sideOffsets = {
+                0.0D,
+                0.18D,
+                -0.18D,
+                0.36D,
+                -0.36D
+        };
 
         for (double yOffset : yOffsets) {
-            Vec3 candidate = new Vec3(base.x, originY + yOffset, base.z);
+            for (double sideOffset : sideOffsets) {
+                Vec3 shiftedBase = base.add(side.scale(sideOffset));
+                Vec3 candidate = new Vec3(shiftedBase.x, originY + yOffset, shiftedBase.z);
 
-            if (isSafeStandingPosition(player, candidate)) {
-                return candidate;
+                if (isSafeStandingPosition(player, candidate)) {
+                    return candidate;
+                }
             }
         }
 
@@ -121,7 +155,7 @@ public class TraceStep extends AbstractRunicActiveSkill {
     }
 
     private boolean isSafeStandingPosition(ServerPlayer player, Vec3 position) {
-        double halfWidth = player.getBbWidth() * 0.5D;
+        double halfWidth = Math.max(0.1D, player.getBbWidth() * 0.5D - 0.04D);
         double height = player.getBbHeight();
 
         AABB bodyBox = new AABB(
@@ -137,7 +171,16 @@ public class TraceStep extends AbstractRunicActiveSkill {
             return false;
         }
 
-        AABB floorCheck = bodyBox.move(0.0D, -0.08D, 0.0D);
+        double footWidth = Math.max(0.08D, halfWidth * 0.8D);
+
+        AABB floorCheck = new AABB(
+                position.x - footWidth,
+                position.y - 0.16D,
+                position.z - footWidth,
+                position.x + footWidth,
+                position.y - 0.02D,
+                position.z + footWidth
+        );
 
         return !player.level().noCollision(player, floorCheck);
     }
@@ -148,24 +191,49 @@ public class TraceStep extends AbstractRunicActiveSkill {
                 position.x,
                 position.y + height * 0.5D,
                 position.z,
-                18,
-                0.25D,
-                0.35D,
-                0.25D,
-                0.02D
+                10,
+                0.18D,
+                0.24D,
+                0.18D,
+                0.01D
         );
 
         level.sendParticles(
-                ParticleTypes.PORTAL,
+                ParticleTypes.ENCHANT,
                 position.x,
                 position.y + height * 0.5D,
                 position.z,
-                12,
-                0.2D,
+                18,
+                0.35D,
                 0.25D,
-                0.2D,
-                0.04D
+                0.35D,
+                0.08D
         );
+    }
+
+    private void spawnTraceLine(ServerLevel level, Vec3 start, Vec3 end, float height) {
+        Vec3 from = start.add(0.0D, height * 0.45D, 0.0D);
+        Vec3 to = end.add(0.0D, height * 0.45D, 0.0D);
+        Vec3 difference = to.subtract(from);
+
+        int points = Math.max(8, (int) (difference.length() * 3.0D));
+
+        for (int i = 0; i <= points; i++) {
+            double progress = i / (double) points;
+            Vec3 point = from.add(difference.scale(progress));
+
+            level.sendParticles(
+                    ParticleTypes.ENCHANT,
+                    point.x,
+                    point.y,
+                    point.z,
+                    1,
+                    0.02D,
+                    0.02D,
+                    0.02D,
+                    0.0D
+            );
+        }
     }
 
     @Override public void finalCast(CastEndData reason, Entity caster, ICastData castData) {}

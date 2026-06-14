@@ -16,9 +16,11 @@ import net.zic.runic_ascension.core.skills.active.AbstractRunicActiveSkill;
 
 public class ScriptSever extends AbstractRunicActiveSkill {
 
-    private static final double QI_COST = 12.0D;
-    private static final double BASE_RANGE = 8.0D;
-    private static final int COOLDOWN_TICKS = 35;
+    private static final double QI_COST = 14.0D;
+    private static final double BASE_RANGE = 14.0D;
+    private static final double RANGE_PER_REALM = 2.4D;
+    private static final double TARGET_RADIUS = 1.65D;
+    private static final int COOLDOWN_TICKS = 24;
 
     @Override
     protected String translationKey() {
@@ -43,7 +45,7 @@ public class ScriptSever extends AbstractRunicActiveSkill {
         }
 
         double range = range(player);
-        LivingEntity target = findSoftLookTarget(player, range, 1.2D);
+        LivingEntity target = findSoftLookTarget(player, range, TARGET_RADIUS);
 
         return target == null
                 ? new CastResult(CastResult.Type.FAILURE)
@@ -56,12 +58,12 @@ public class ScriptSever extends AbstractRunicActiveSkill {
         if (player.level().isClientSide()) return;
 
         double range = range(player);
-        LivingEntity target = findSoftLookTarget(player, range, 1.2D);
+        LivingEntity target = findSoftLookTarget(player, range, TARGET_RADIUS);
         if (target == null) return;
 
         if (!tryConsumeQi(player, QI_COST)) return;
 
-        float damage = calculateRunicAttackDamage(player, 18.0F, 2.15F, 12.0F);
+        float damage = calculateRunicAttackDamage(player, 42.0F, 4.75F, 18.0F);
         target.hurt(runicDamageSource(player), damage);
 
         ServerLevel level = player.serverLevel();
@@ -84,7 +86,7 @@ public class ScriptSever extends AbstractRunicActiveSkill {
     }
 
     private double range(ServerPlayer player) {
-        return BASE_RANGE + runicRealm(player) * 0.75D;
+        return BASE_RANGE + runicRealm(player) * RANGE_PER_REALM;
     }
 
     private void spawnSeverLine(ServerLevel level, Vec3 start, Vec3 end) {
