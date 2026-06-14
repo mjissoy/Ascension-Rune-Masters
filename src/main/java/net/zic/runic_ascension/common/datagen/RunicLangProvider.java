@@ -66,6 +66,12 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.inscription.seal.no_selection", "No inscription pattern is available.");
         add("runic_ascension.inscription.seal.missing_material", "Hold the required material in your other hand: %s.");
 
+        add("runic_ascension.inscription.seal.status.none", "Current tier: not inscribed.");
+        add("runic_ascension.inscription.seal.status.current", "Current tier: %s");
+        add("runic_ascension.inscription.seal.status.next", "Next tier: %s");
+        add("runic_ascension.inscription.seal.status.material", "Required material: %s");
+        add("runic_ascension.inscription.seal.status.maxed", "This inscription has reached its current limit.");
+
         add("runic_ascension.runic.scrap.tooltip.read", "Right-click to let the words settle in your mind.");
         add("runic_ascension.runic.scrap.recorded", "%s settles into your Codex.");
         add("runic_ascension.runic.scrap.already_recorded", "%s is already recorded in your Codex.");
@@ -252,14 +258,6 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.sequence.piercing_flame_bolt.desc", "Condenses flame into a narrow bolt capable of piercing flesh and armor.");
         add("runic_ascension.runic.sequence.violent_wind_pulse", "Violent Wind Pulse");
         add("runic_ascension.runic.sequence.violent_wind_pulse.desc", "Detonates a violent ring of compressed wind around the caster.");
-
-        add("runic_ascension.technique.basic_runic_script", "Basic Runic Script");
-        add("runic_ascension.technique.basic_runic_script.description.short", "A simple script for tracing and casting basic runic sequences.");
-        add("runic_ascension.technique.basic_runic_script.description", "A beginner Runic Path technique that teaches the cultivator how to arrange known runes into simple castable sequences.");
-
-        add("runic_ascension.technique.runic_apprentice", "Runic Apprentice");
-        add("runic_ascension.technique.runic_apprentice.description.short", "A beginner technique for sensing and shaping runic traces.");
-        add("runic_ascension.technique.runic_apprentice.description", "A foundational runic technique that teaches the cultivator to perceive traces, arrange symbols, and begin shaping formulae through the Runic Path.");
 
         add("runic_ascension.skill.open_runic_casting", "Runic Casting");
         add("runic_ascension.skill.open_runic_casting.description"  , "Open the Runic Casting interface and weave known runes into a sequence.");
@@ -457,5 +455,26 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.inscription.mirror_mark.tier.2.description", "Improves ward radius and prepares future reactive effects.");
         add("runic_ascension.inscription.mirror_mark.tier.3", "Luminous Mirror-Mark");
         add("runic_ascension.inscription.mirror_mark.tier.3.description", "Greatly improves ward control and prepares future reflection effects.");
+
+        add("runic_ascension.technique.runic_apprentice", "Runic Apprentice");
+        add("runic_ascension.technique.runic_apprentice.description.short", "A beginner technique for sensing and shaping runic traces.");
+        add("runic_ascension.technique.runic_apprentice.description", "A foundational runic technique that teaches the cultivator to perceive traces, arrange symbols, and begin shaping formulae through the Runic Path.");
+
+        add("runic_ascension.technique.runic_apprentice", "Runic Apprentice");
+        add("runic_ascension.technique.runic_apprentice.description.short", "A beginner technique for sensing and shaping runic traces.");
+        add("runic_ascension.technique.runic_apprentice.description", "A foundational runic technique that teaches the cultivator to perceive traces, arrange symbols, and begin shaping formulae through the Runic Path.");
+
+        add("runic_ascension.technique.inner_inscription_method", "Inner Inscription Method");
+        add("runic_ascension.technique.inner_inscription_method.description.short", "A defensive runic technique focused on the body and inscriptions.");
+        add("runic_ascension.technique.inner_inscription_method.description", "A Runic Path technique that turns the body into a vessel for stable script. It favours vitality, endurance, defensive wards, and future body inscription effects.");
+
+        add("runic_ascension.technique.outer_formula_method", "Outer Formula Method");
+        add("runic_ascension.technique.outer_formula_method.description.short", "An offensive runic technique focused on external formulae.");
+        add("runic_ascension.technique.outer_formula_method.description", "A Runic Path technique that writes command into the world rather than the body. It favours intelligence, offensive formulae, ranged scriptwork, and future external rune manipulation.");
+
+        add("runic_ascension.technique.trace_visualization_method", "Trace Visualization Method");
+        add("runic_ascension.technique.trace_visualization_method.description.short", "A perception-focused runic technique for sight, movement, and discovery.");
+        add("runic_ascension.technique.trace_visualization_method.description", "A Runic Path technique that sharpens the inner eye and follows hidden traces through the world. It favours intelligence, agility, Runic Sight, Trace Step, and future discovery-based progression.");
+
     }
 }

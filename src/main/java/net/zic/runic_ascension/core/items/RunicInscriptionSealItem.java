@@ -84,7 +84,12 @@ public class RunicInscriptionSealItem extends Item {
                 ? serverPlayer.getOffhandItem()
                 : serverPlayer.getMainHandItem();
 
-        if (materialStack.isEmpty() || materialStack.getItem() != requiredMaterial) {
+        if (materialStack.isEmpty()) {
+            inspectSelectedInscription(serverPlayer, sealStack, inscription);
+            return InteractionResultHolder.success(sealStack);
+        }
+
+        if (materialStack.getItem() != requiredMaterial) {
             serverPlayer.displayClientMessage(
                     Component.translatable(
                             "runic_ascension.inscription.seal.missing_material",
@@ -92,6 +97,8 @@ public class RunicInscriptionSealItem extends Item {
                     ).withStyle(ChatFormatting.RED),
                     true
             );
+
+            inspectSelectedInscription(serverPlayer, sealStack, inscription);
             return InteractionResultHolder.success(sealStack);
         }
 
@@ -131,6 +138,7 @@ public class RunicInscriptionSealItem extends Item {
                             .withStyle(ChatFormatting.RED),
                     true
             );
+
             return;
         }
 
@@ -146,6 +154,7 @@ public class RunicInscriptionSealItem extends Item {
                 ).withStyle(ChatFormatting.LIGHT_PURPLE),
                 true
         );
+        inspectSelectedInscription(player, stack, inscriptions.get(next));
     }
 
     private RunicInscription getSelectedInscription(ItemStack stack) {
@@ -180,6 +189,75 @@ public class RunicInscriptionSealItem extends Item {
 
     private List<RunicInscription> inscriptionList() {
         return new ArrayList<>(ModRunicInscriptions.all());
+    }
+
+    private void inspectSelectedInscription(ServerPlayer player, ItemStack sealStack, RunicInscription inscription) {
+        int currentTier = RunicInscriptionHelper.getTier(player, inscription);
+        RunicInscription.Tier nextTier = inscription.getNextTier(currentTier);
+
+        player.displayClientMessage(
+                Component.literal("◆ ").withStyle(ChatFormatting.DARK_PURPLE)
+                        .append(inscription.getName().copy().withStyle(ChatFormatting.LIGHT_PURPLE)),
+                false
+        );
+
+        if (currentTier <= 0) {
+            player.displayClientMessage(
+                    Component.translatable("runic_ascension.inscription.seal.status.none")
+                            .withStyle(ChatFormatting.GRAY),
+                    false
+            );
+        } else {
+            player.displayClientMessage(
+                    Component.translatable(
+                            "runic_ascension.inscription.seal.status.current",
+                            inscription.getTierName(currentTier)
+                    ).withStyle(ChatFormatting.AQUA),
+                    false
+            );
+
+            player.displayClientMessage(
+                    inscription.getTierDescription(currentTier).copy()
+                            .withStyle(ChatFormatting.GRAY),
+                    false
+            );
+        }
+
+        if (nextTier == null) {
+            player.displayClientMessage(
+                    Component.translatable("runic_ascension.inscription.seal.status.maxed")
+                            .withStyle(ChatFormatting.GOLD),
+                    false
+            );
+            return;
+        }
+
+        Item requiredMaterial = requiredMaterialFor(inscription, nextTier.tier());
+
+        player.displayClientMessage(
+                Component.translatable(
+                        "runic_ascension.inscription.seal.status.next",
+                        inscription.getTierName(nextTier.tier())
+                ).withStyle(ChatFormatting.YELLOW),
+                false
+        );
+
+        player.displayClientMessage(
+                Component.translatable(
+                        "runic_ascension.inscription.seal.status.material",
+                        requiredMaterial.getDescription()
+                ).withStyle(ChatFormatting.GRAY),
+                false
+        );
+
+        Component failure = RunicInscriptionHelper.getUnlockFailure(player, inscription);
+
+        if (failure != null) {
+            player.displayClientMessage(
+                    failure.copy().withStyle(ChatFormatting.RED),
+                    false
+            );
+        }
     }
 
     private Item requiredMaterialFor(RunicInscription inscription, int tier) {
