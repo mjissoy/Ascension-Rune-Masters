@@ -133,6 +133,13 @@ public final class RunicItems {
                     RunicBrushType.HELL
             ));
 
+    public static final DeferredItem<RunicInscriptionSealItem> RUNIC_INSCRIPTION_SEAL =
+            ITEMS.register("runic_inscription_seal",
+                    () -> new RunicInscriptionSealItem(new Item.Properties().stacksTo(1)));
+
+
+    //-----------------------------------------------------------------------------------------------------
+
     private static DeferredItem<RunicTomeItem> registerFormulaTome(
             String path,
             String formulaFamilyKey,

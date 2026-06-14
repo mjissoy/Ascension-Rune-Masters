@@ -1,4 +1,4 @@
-package net.zic.runic_ascension.core.skills.active;
+package net.zic.runic_ascension.core.skills;
 
 import net.lucent.easygui.gui.RenderableElement;
 import net.lucent.easygui.gui.UIFrame;
@@ -122,7 +122,7 @@ public class OpenRunicCastingSkill implements ICastableSkill {
         return new TextureData(
                 ResourceLocation.fromNamespaceAndPath(
                         RunicAscension.MOD_ID,
-                        "textures/spells/icon/placeholder.png"
+                        "textures/spells/icon/runic_casting.png"
                 ),
                 16,
                 16

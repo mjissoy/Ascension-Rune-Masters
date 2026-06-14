@@ -6,6 +6,7 @@ import net.thejadeproject.ascension.refactor_packages.entity_data.IEntityData;
 import net.thejadeproject.ascension.refactor_packages.stats.Stat;
 import net.thejadeproject.ascension.refactor_packages.stats.custom.ModStats;
 import net.zic.runic_ascension.core.items.RunicBrushType;
+import net.zic.runic_ascension.util.RunicInscriptionHelper;
 
 public final class RunicFormulaScaling {
 
@@ -37,8 +38,6 @@ public final class RunicFormulaScaling {
 
         damage += intelligence * 0.025F;
 
-        // Same-category clauses are the start of the wide grammar goal:
-        // extra sources blend concepts, extra intents layer behaviour, extra forms shape delivery.
         damage += Math.max(0, formula.sourceCount() - 1) * 0.22F;
         damage += Math.max(0, formula.intentCount() - 1) * 0.16F;
         duration += Math.max(0, formula.formCount() - 1) * 0.12F;
@@ -68,7 +67,6 @@ public final class RunicFormulaScaling {
             stability += vitality * 0.002F;
         }
 
-        // Basic source synergies. These are intentionally small; actual identity comes from rune order and selected form.
         if (formula.hasSource("flame") && formula.hasSource("wind")) {
             damage += 0.20F;
             range += 0.08F;
@@ -137,14 +135,13 @@ public final class RunicFormulaScaling {
             stability += suppressionGap * 0.045F;
         }
 
-        // The profile is the semantic layer: it lets a Flame Cut Line scale
-        // differently from a Wind Cut Line even when their grammar shape matches.
         damage *= profile.damageMultiplier();
         duration *= profile.durationMultiplier();
         range *= profile.rangeMultiplier();
         qiCost *= profile.qiCostMultiplier();
         backlash += profile.backlashModifier();
         stability += profile.stabilityModifier();
+        stability += RunicInscriptionHelper.formulaStabilityBonus(caster);
 
         RunicFormulaStats stats = new RunicFormulaStats(
                 Math.max(0.5F, damage),
@@ -176,7 +173,6 @@ public final class RunicFormulaScaling {
         float backlash = stats.backlashMultiplier() * brushType.backlashMultiplier();
         float stability = stats.stabilityMultiplier() * brushType.stabilityMultiplier();
 
-        // The first brush families lean into identity, not just generic stat bumps.
         if (brushType == RunicBrushType.EARTH && profile.isDefensive()) {
             duration *= 1.08F;
             stability *= 1.08F;

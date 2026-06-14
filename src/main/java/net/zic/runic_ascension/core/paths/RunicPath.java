@@ -26,13 +26,14 @@ public class RunicPath extends FoundationPath {
         addMajorRealmName("runic_ascension.path.runic.infinite_script");
     }
 
-    @Override
-    public int getMaxMajorRealm() {
-        return 10;
-    }
+//    @Override
+//    public int getMaxMajorRealm() {
+//        return 10;
+//    }
 
-    @Override
-    public int getMaxMinorRealm(int majorRealm) {
-        return 9;
-    }
+//    @Override
+//    public int getMaxMinorRealm(int majorRealm) {
+//        return 9;
+//    }
+
 }

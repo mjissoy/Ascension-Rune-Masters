@@ -16,6 +16,7 @@ public class RunicItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
+
         basicItem(RunicItems.RUNIC_CODEX.get());
         tomeItem(RunicItems.RUNIC_TOME.get());
         tomeItem(RunicItems.RUNIC_TOME_EMBER_BOLT.get());
@@ -36,6 +37,10 @@ public class RunicItemModelProvider extends ItemModelProvider {
         brushItem(RunicItems.EARTH_RUNIC_BRUSH.get());
         brushItem(RunicItems.HEAVEN_RUNIC_BRUSH.get());
         brushItem(RunicItems.HELL_RUNIC_BRUSH.get());
+
+        basicItem(RunicItems.RUNIC_INSCRIPTION_SEAL.get());
+
+
     }
 
 

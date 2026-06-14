@@ -21,6 +21,7 @@ import net.thejadeproject.ascension.refactor_packages.entity_data.IEntityData;
 import net.thejadeproject.ascension.refactor_packages.handlers.AscensionDamageHandler;
 import net.zic.runic_ascension.content.RunicPathHelper;
 import net.zic.runic_ascension.core.paths.RunicPaths;
+import net.zic.runic_ascension.util.RunicInscriptionHelper;
 
 import java.util.HashSet;
 import java.util.List;
@@ -751,9 +752,9 @@ public final class RunicFormulaCaster {
         }
 
         damage *= stats.backlashMultiplier();
+        damage *= RunicInscriptionHelper.backlashMultiplier(caster);
 
         caster.hurt(caster.damageSources().magic(), Math.max(1.0F, damage));
-
         int duration = 40 + formula.inputRunes().size() * 10;
 
         caster.addEffect(new MobEffectInstance(MobEffects.CONFUSION, duration, 0));

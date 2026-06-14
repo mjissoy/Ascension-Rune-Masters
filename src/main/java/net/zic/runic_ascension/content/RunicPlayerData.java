@@ -23,6 +23,7 @@ public class RunicPlayerData {
     private static final String KEY_DISCOVERED_SEQUENCES = "discovered_sequences";
     private static final String KEY_DISCOVERED_FORMULAS = "discovered_formulas";
     private static final String KEY_DISCOVERED_SCRAPS = "discovered_scraps";
+    private static final String KEY_INSCRIPTIONS = "inscriptions";
 
     private final Set<ResourceLocation> knownRunes = new HashSet<>();
     private final Set<ResourceLocation> observedRunes = new HashSet<>();
@@ -32,6 +33,7 @@ public class RunicPlayerData {
     private final Set<ResourceLocation> discoveredSequences = new HashSet<>();
     private final Map<ResourceLocation, RunicDiscoveredFormula> discoveredFormulas = new HashMap<>();
     private final Set<String> discoveredScraps = new HashSet<>();
+    private final Map<ResourceLocation, Integer> inscriptions = new HashMap<>();
 
     public Set<ResourceLocation> getKnownRunes() {
         return knownRunes;
@@ -83,6 +85,26 @@ public class RunicPlayerData {
 
     public boolean hasDiscoveredScrap(String scrapKey) {
         return scrapKey != null && discoveredScraps.contains(scrapKey);
+    }
+
+    public Map<ResourceLocation, Integer> getInscriptionTiers() {
+        return inscriptions;
+    }
+
+    public int getInscriptionTier(ResourceLocation inscriptionId) {
+        return inscriptions.getOrDefault(inscriptionId, 0);
+    }
+
+    public boolean hasInscription(ResourceLocation inscriptionId) {
+        return getInscriptionTier(inscriptionId) > 0;
+    }
+
+    public void setInscriptionTier(ResourceLocation inscriptionId, int tier) {
+        if (inscriptionId == null || tier <= 0) {
+            return;
+        }
+
+        inscriptions.put(inscriptionId, tier);
     }
 
     public RunicLearningState getLearningState(ResourceLocation runeId) {
@@ -142,11 +164,7 @@ public class RunicPlayerData {
         return discoveredScraps.add(scrapKey);
     }
 
-    /**
-     * Records a successful flexible formula cast. The old discoveredSequences set is
-     * still updated so older codex/list code can see the formula id, but the real
-     * rune order and mastery data live in discoveredFormulas.
-     */
+
     public RunicDiscoveredFormula recordFormulaCast(ResourceLocation formulaId, List<ResourceLocation> inputRunes) {
         if (formulaId == null) {
             return null;
@@ -172,6 +190,7 @@ public class RunicPlayerData {
         tag.put(KEY_DISCOVERED_SEQUENCES, writeIdSet(discoveredSequences));
         tag.put(KEY_DISCOVERED_FORMULAS, writeDiscoveredFormulas());
         tag.put(KEY_DISCOVERED_SCRAPS, writeStringSet(discoveredScraps));
+        tag.put(KEY_INSCRIPTIONS, writeInscriptionTiers());
 
         CompoundTag progressTag = new CompoundTag();
         observationProgress.forEach((id, progress) -> progressTag.putFloat(id.toString(), progress));
@@ -188,6 +207,7 @@ public class RunicPlayerData {
         discoveredSequences.clear();
         discoveredFormulas.clear();
         discoveredScraps.clear();
+        inscriptions.clear();
 
         readIdSet(tag, KEY_KNOWN_RUNES, knownRunes);
         readIdSet(tag, KEY_OBSERVED_RUNES, observedRunes);
@@ -195,6 +215,7 @@ public class RunicPlayerData {
         readIdSet(tag, KEY_DISCOVERED_SEQUENCES, discoveredSequences);
         readDiscoveredFormulas(tag);
         readStringSet(tag, KEY_DISCOVERED_SCRAPS, discoveredScraps);
+        readInscriptionTiers(tag);
 
         CompoundTag progressTag = tag.getCompound(KEY_OBSERVATION_PROGRESS);
 
@@ -226,6 +247,34 @@ public class RunicPlayerData {
             if (formula != null) {
                 discoveredFormulas.put(formula.formulaId(), formula);
                 discoveredSequences.add(formula.formulaId());
+            }
+        }
+    }
+
+    private CompoundTag writeInscriptionTiers() {
+        CompoundTag tag = new CompoundTag();
+
+        inscriptions.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(ResourceLocation::toString)))
+                .forEach(entry -> tag.putInt(entry.getKey().toString(), entry.getValue()));
+
+        return tag;
+    }
+
+    private void readInscriptionTiers(CompoundTag tag) {
+        CompoundTag inscriptionTag = tag.getCompound(KEY_INSCRIPTIONS);
+
+        for (String key : inscriptionTag.getAllKeys()) {
+            ResourceLocation id = ResourceLocation.tryParse(key);
+
+            if (id == null) {
+                continue;
+            }
+
+            int tier = inscriptionTag.getInt(key);
+
+            if (tier > 0) {
+                inscriptions.put(id, tier);
             }
         }
     }

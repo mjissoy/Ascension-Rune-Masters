@@ -1,4 +1,4 @@
-package net.zic.runic_ascension.core.skills.active;
+package net.zic.runic_ascension.util.runic_sight;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;

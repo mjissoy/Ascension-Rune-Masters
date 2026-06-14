@@ -24,9 +24,6 @@ public final class RunicCreativeTabs {
                     .build()
             );
 
-    private RunicCreativeTabs() {
-    }
-
     public static void register(IEventBus bus) {
         CREATIVE_MODE_TABS.register(bus);
     }

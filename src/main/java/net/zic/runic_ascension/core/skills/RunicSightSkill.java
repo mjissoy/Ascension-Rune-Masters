@@ -1,4 +1,4 @@
-package net.zic.runic_ascension.core.skills.active;
+package net.zic.runic_ascension.core.skills;
 
 import net.lucent.easygui.gui.RenderableElement;
 import net.lucent.easygui.gui.UIFrame;
@@ -42,6 +42,8 @@ import net.zic.runic_ascension.content.runes.IRunicRune;
 import net.zic.runic_ascension.content.runes.ModRunicRunes;
 import net.zic.runic_ascension.core.skills.data.EmptyRunicCastData;
 import net.zic.runic_ascension.core.skills.data.EmptyRunicPreCastData;
+import net.zic.runic_ascension.util.runic_sight.RunicSightResolver;
+import net.zic.runic_ascension.util.runic_sight.RunicSightTrace;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -348,7 +350,7 @@ public class RunicSightSkill implements ICastableSkill {
         return new TextureData(
                 ResourceLocation.fromNamespaceAndPath(
                         RunicAscension.MOD_ID,
-                        "textures/spells/icon/placeholder.png"
+                        "textures/spells/icon/runic_sight.png"
                 ),
                 16,
                 16

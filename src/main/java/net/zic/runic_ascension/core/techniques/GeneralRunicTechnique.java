@@ -5,7 +5,7 @@ import net.thejadeproject.ascension.refactor_packages.entity_data.IEntityData;
 import net.thejadeproject.ascension.refactor_packages.techniques.ITechniqueData;
 import net.thejadeproject.ascension.refactor_packages.techniques.custom.GenericTechnique;
 import net.zic.runic_ascension.core.paths.RunicPaths;
-import net.zic.runic_ascension.util.RunicTechniqueSkillHelper;
+import net.zic.runic_ascension.util.RunicTechniqueHelper;
 
 import java.util.Set;
 
@@ -34,13 +34,13 @@ public class GeneralRunicTechnique extends GenericTechnique {
     @Override
     public void onTechniqueAdded(IEntityData heldEntity) {
         super.onTechniqueAdded(heldEntity);
-        RunicTechniqueSkillHelper.refresh(heldEntity, true);
+        RunicTechniqueHelper.refresh(heldEntity, true);
     }
 
     @Override
     public void onTechniqueRemoved(IEntityData heldEntity, ITechniqueData techniqueData) {
         super.onTechniqueRemoved(heldEntity, techniqueData);
-        RunicTechniqueSkillHelper.clear(heldEntity);
+        RunicTechniqueHelper.clear(heldEntity);
     }
 
     @Override
@@ -52,6 +52,6 @@ public class GeneralRunicTechnique extends GenericTechnique {
             int newMinorRealm
     ) {
         super.onRealmChange(entityData, oldMajorRealm, oldMinorRealm, newMajorRealm, newMinorRealm);
-        RunicTechniqueSkillHelper.refresh(entityData, true);
+        RunicTechniqueHelper.refresh(entityData, true);
     }
 }

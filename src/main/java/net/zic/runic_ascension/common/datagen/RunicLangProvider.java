@@ -12,7 +12,12 @@ public class RunicLangProvider extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        // Path
+
+        add("itemGroup.runic_ascension", "Ascension: Rune Masters");
+
+
+
+        // PATH
         add("runic_ascension.path.runic", "Runic Path");
         add("runic_ascension.path.runic.description", "A path of symbols, scripts, and living formulae that reveals the hidden language of reality.");
 
@@ -27,10 +32,9 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.path.runic.origin_spark", "Origin Spark");
         add("runic_ascension.path.runic.infinite_script", "Infinite Script");
 
-        // MISC
-        add("itemGroup.runic_ascension", "Ascension: Rune Masters");
 
-        // Runic Path Things
+
+        // RUNIC PATH THINGS
         add("item.runic_ascension.runic_tome", "Runic Tome: Complete Archive");
         add("item.runic_ascension.runic_tome_ember_bolt", "Fragmented Tome: Ember Bolt");
         add("item.runic_ascension.runic_tome_stone_ward", "Fragmented Tome: Stone Ward");
@@ -52,6 +56,16 @@ public class RunicLangProvider extends LanguageProvider {
         add("item.runic_ascension.runic_scrap_suppression", "Runic Scrap: Suppression");
         add("item.runic_ascension.runic_scrap_first_formula", "Runic Scrap: First Formula");
         add("item.runic_ascension.runic_scrap_free_casting", "Runic Scrap: Free Casting");
+
+        add("item.runic_ascension.runic_inscription_seal", "Runic Inscription Seal");
+
+        add("runic_ascension.inscription.seal.tooltip", "Used to carve known inscription patterns into the body.");
+        add("runic_ascension.inscription.seal.tooltip.selected", "Selected inscription: %s");
+        add("runic_ascension.inscription.seal.tooltip.cycle", "Sneak and right-click to cycle the selected inscription.");
+        add("runic_ascension.inscription.seal.selected", "Selected inscription: %s");
+        add("runic_ascension.inscription.seal.no_selection", "No inscription pattern is available.");
+        add("runic_ascension.inscription.seal.missing_material", "Hold the required material in your other hand: %s.");
+
         add("runic_ascension.runic.scrap.tooltip.read", "Right-click to let the words settle in your mind.");
         add("runic_ascension.runic.scrap.recorded", "%s settles into your Codex.");
         add("runic_ascension.runic.scrap.already_recorded", "%s is already recorded in your Codex.");
@@ -122,9 +136,6 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.scrap.free_casting.line_2", "Free formulae are roads written as you walk.");
         add("runic_ascension.runic.scrap.free_casting.line_3", "Learn origins, wills, vessels and strokes, then test their grammar.");
         add("runic_ascension.runic.scrap.free_casting.line_4", "When enough runes answer you, the Codex becomes a map instead of a cage.");
-        add("runic_ascension.physiques.runic_testing", "Runic Testing Physique");
-        add("runic_ascension.physiques.runic_testing.description.short", "A physique that awakens basic runic affinity.");
-        add("runic_ascension.physiques.runic_testing.description", "A simple testing physique used to unlock and validate the Runic Path.");
 
         add("runic_ascension.runic.tome.complete_archive", "For §b§4[Admin]§r Usage Only");
         add("runic_ascension.runic.tome.fragment_family", "Fragmented formula family:");
@@ -306,10 +317,6 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.cast.too_many_forms", "Too many vessels twist the formula from shape into ruin.");
         add("runic_ascension.runic.cast.unstable_opening_modifier", "A stray stroke opens the rite, and the script loses its root.");
 
-        add("runic_ascension.bloodline.runic_tester_bloodline", "Runic Tester Bloodline");
-        add("runic_ascension.bloodline.runic_tester_bloodline.short", "A testing bloodline with minor runic circulation benefits.");
-        add("runic_ascension.bloodline.runic_tester_bloodline.desc", "A temporary testing bloodline used while developing runic bloodline affinity and mastery bonuses.");
-
         add("runic_ascension.skill.runic_sight", "Runic Sight");
         add("runic_ascension.skill.runic_sight.description", "Opens the inner eye to glimpse runes hidden in nearby blocks and traces.");
         add("runic_ascension.runic.sight.no_traces", "No runic traces answer your sight.");
@@ -333,5 +340,122 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.casting.close", "Close");
 
 
+
+        // SKILLS
+        add("runic_ascension.skill.script_sever", "Script Sever");
+        add("runic_ascension.skill.script_sever.description", "Draws a thin cutting line through a target. Requires the Cut and Line runes.");
+        add("runic_ascension.skill.cinder_brand", "Cinder Brand");
+        add("runic_ascension.skill.cinder_brand.description", "Marks a target with burning script. Requires the Flame, Mark, and Release runes.");
+        add("runic_ascension.skill.stone_ward", "Stone Ward");
+        add("runic_ascension.skill.stone_ward.description", "Sustains a defensive stone ward while held, consuming qi over time. The ward pushes nearby enemies back and disrupts incoming projectiles. Requires the Earth and Guard runes.");
+        add("runic_ascension.skill.water_mantle", "Water Mantle");
+        add("runic_ascension.skill.water_mantle.description", "Wraps the caster in flowing script while held, consuming qi over time. The mantle extinguishes flame, mends wounds, and dampens incoming force. Requires the Water and Heal runes.");
+        add("runic_ascension.skill.trace_step", "Trace Step");
+        add("runic_ascension.skill.trace_step.description", "Steps through a thin wind-veiled trace. Range increases with Runic realm. Requires the Wind and Veil runes.");
+
+
+
+        // PHYSIQUES
+        add("runic_ascension.physiques.runic_subject", "Runic Subject");
+        add("runic_ascension.physiques.runic_subject.description.short", "A faintly marked physique with basic runic affinity.");
+        add("runic_ascension.physiques.runic_subject.description", "The body bears shallow traces of script, as if reality began writing and stopped before the final stroke. This physique grants a minor affinity for the Runic Path and may one day evolve toward soul, body, or meridian inscription.");
+        add("runic_ascension.physiques.runic_eyes", "Runic Eyes");
+        add("runic_ascension.physiques.runic_eyes.description.short", "Eyes that read traces hidden beneath the surface of the world.");
+        add("runic_ascension.physiques.runic_eyes.description", "The pupils hold thin rings of living script, allowing the cultivator to perceive hidden strokes with unusual clarity. This physique greatly favours the Runic Path and is especially suited to discovery, observation, and formula study.");
+        add("runic_ascension.physiques.essence_rune_physique", "Essence Rune Physique");
+        add("runic_ascension.physiques.essence_rune_physique.description.short", "A physique where runic traces mingle with essence circulation.");
+        add("runic_ascension.physiques.essence_rune_physique.description", "Runic marks settle into the flow of essence, guiding qi through deliberate patterns. This physique supports both the Essence Path and the Runic Path, making it suitable for cultivators who shape formulae through breath, flow, and inner refinement.");
+        add("runic_ascension.physiques.body_rune_physique", "Body Rune Physique");
+        add("runic_ascension.physiques.body_rune_physique.description.short", "A physique where the flesh remembers protective script.");
+        add("runic_ascension.physiques.body_rune_physique.description", "The skin, bones, and muscles respond naturally to inscription, as if the body were waiting to become a living talisman. This physique supports both the Body Path and the Runic Path, favouring defensive formulae, bodily inscriptions, and close-range endurance.");
+        add("runic_ascension.physiques.soul_rune_physique", "Soul Rune Physique");
+        add("runic_ascension.physiques.soul_rune_physique.description.short", "A physique where the soul echoes with half-formed glyphs.");
+        add("runic_ascension.physiques.soul_rune_physique.description", "Runic traces drift through the soul like lanterns under dark water, sharpening perception and deepening symbolic control. This physique supports both the Soul Path and the Runic Path, favouring observation, invocation, and inner script manipulation.");
+        add("runic_ascension.physiques.invoking_soul", "Invoking Soul");
+        add("runic_ascension.physiques.invoking_soul.description.short", "A sealed evolution focused on soul-bound runic invocation.");
+        add("runic_ascension.physiques.invoking_soul.description", "The soul becomes a chamber of spoken glyphs, capable of calling script through intent alone. This evolution is aligned with the Runic and Soul Paths. Its deeper potential is currently sealed.");
+        add("runic_ascension.physiques.inscribing_body", "Inscribing Body");
+        add("runic_ascension.physiques.inscribing_body.description.short", "A sealed evolution focused on body-bound runic inscription.");
+        add("runic_ascension.physiques.inscribing_body.description", "The body accepts runes as naturally as breath, turning flesh, bone, and meridian into a living scripture. This evolution is aligned with the Runic and Body Paths. Its deeper potential is currently sealed.");
+        add("runic_ascension.physiques.etching_meridians", "Etching Meridians");
+        add("runic_ascension.physiques.etching_meridians.description.short", "A sealed evolution focused on runic essence circulation.");
+        add("runic_ascension.physiques.etching_meridians.description", "The meridians harden into channels of deliberate script, refining qi as it moves through the body. This evolution is aligned with the Runic and Essence Paths. Its deeper potential is currently sealed.");
+        add("runic_ascension.physiques.runic_perfection", "Runic Perfection");
+        add("runic_ascension.physiques.runic_perfection.description.short", "A sealed physique approaching pure runic harmony.");
+        add("runic_ascension.physiques.runic_perfection.description", "Every breath, thought, and movement approaches the rhythm of a completed formula. The body no longer carries runes as markings; it begins to resemble a script written by reality itself. This evolution is currently sealed.");
+
+
+
+        // BLOODLINES
+        add("runic_ascension.bloodline.ink_blood_lineage", "Ink-Blood Lineage");
+        add("runic_ascension.bloodline.ink_blood_lineage.short", "A bloodline that carries qi like living ink.");
+        add("runic_ascension.bloodline.ink_blood_lineage.desc", "The blood runs dark with faint script, carrying qi through the body like ink across prepared paper. This lineage increases maximum qi and qi regeneration, making it well suited to repeated formula casting and long study of the Runic Path.");
+        add("runic_ascension.bloodline.burning_blood_runes", "Burning Blood Runes");
+        add("runic_ascension.bloodline.burning_blood_runes.short", "A fierce bloodline marked by hot, aggressive script.");
+        add("runic_ascension.bloodline.burning_blood_runes.desc", "The blood carries ember-bright runes that flare under strain, strengthening the body through heat and violence. This lineage greatly increases maximum health and hints at future synergy with flame, violent, and backlash-heavy formulae.");
+
+
+
+        // RUNIC INSCRIPTIONS
+        add("runic_ascension.inscription.unlock.invalid", "The inscription cannot be read.");
+        add("runic_ascension.inscription.unlock.not_on_path", "The script refuses your body. You have not entered the Runic Path.");
+        add("runic_ascension.inscription.unlock.maxed", "%s has already reached its current limit.");
+        add("runic_ascension.inscription.unlock.realm_too_low", "Your Runic realm is too low. Requires Runic Realm %s.");
+        add("runic_ascension.inscription.unlock.missing_runes", "The pattern is incomplete. You are missing %s required rune(s).");
+        add("runic_ascension.inscription.unlock.success", "%s settles into your body.");
+        add("runic_ascension.inscription.flameguard", "Flameguard Inscription");
+        add("runic_ascension.inscription.flameguard.description.short", "A defensive inscription that teaches the body to endure flame.");
+        add("runic_ascension.inscription.flameguard.description", "Flame and guard are carved into the body as a sealed ember-script. The inscription dulls fire and later steadies flame formulae against backlash.");
+        add("runic_ascension.inscription.flameguard.tier.1", "Minor Flameguard");
+        add("runic_ascension.inscription.flameguard.tier.1.description", "Slightly reduces fire damage.");
+        add("runic_ascension.inscription.flameguard.tier.2", "Stabilised Flameguard");
+        add("runic_ascension.inscription.flameguard.tier.2.description", "Further reduces fire damage and slightly softens flame backlash.");
+        add("runic_ascension.inscription.flameguard.tier.3", "Perfected Flameguard");
+        add("runic_ascension.inscription.flameguard.tier.3.description", "Greatly reduces fire damage and makes flame formulae easier to endure.");
+        add("runic_ascension.inscription.stonehide", "Stonehide Inscription");
+        add("runic_ascension.inscription.stonehide.description.short", "A body inscription that roots defense into flesh and bone.");
+        add("runic_ascension.inscription.stonehide.description", "Earth and guard are pressed into the body as a dense protective script. The inscription strengthens Stone Ward and improves grounded defensive patterns.");
+        add("runic_ascension.inscription.stonehide.tier.1", "Minor Stonehide");
+        add("runic_ascension.inscription.stonehide.tier.1.description", "Slightly empowers Stone Ward.");
+        add("runic_ascension.inscription.stonehide.tier.2", "Heavy Stonehide");
+        add("runic_ascension.inscription.stonehide.tier.2.description", "Further empowers Stone Ward and improves its force.");
+        add("runic_ascension.inscription.stonehide.tier.3", "Bastion Stonehide");
+        add("runic_ascension.inscription.stonehide.tier.3.description", "Greatly empowers Stone Ward and strengthens defensive earth scripts.");
+        add("runic_ascension.inscription.clearflow", "Clearflow Inscription");
+        add("runic_ascension.inscription.clearflow.description.short", "A healing inscription that keeps the inner current clear.");
+        add("runic_ascension.inscription.clearflow.description", "Water and heal are threaded through the body as a flowing recovery pattern. The inscription improves Water Mantle and later deepens restorative formulae.");
+        add("runic_ascension.inscription.clearflow.tier.1", "Minor Clearflow");
+        add("runic_ascension.inscription.clearflow.tier.1.description", "Slightly improves Water Mantle healing.");
+        add("runic_ascension.inscription.clearflow.tier.2", "Circling Clearflow");
+        add("runic_ascension.inscription.clearflow.tier.2.description", "Further improves Water Mantle healing and grants a brief recovery pulse.");
+        add("runic_ascension.inscription.clearflow.tier.3", "Living Clearflow");
+        add("runic_ascension.inscription.clearflow.tier.3.description", "Greatly improves Water Mantle healing and strengthens restorative scripts.");
+        add("runic_ascension.inscription.windstep", "Windstep Inscription");
+        add("runic_ascension.inscription.windstep.description.short", "A movement inscription that thins the body into a moving trace.");
+        add("runic_ascension.inscription.windstep.description", "Wind and quicken are carved along the limbs, letting movement follow runic traces more easily. The inscription improves Trace Step and later adds brief speed after stepping.");
+        add("runic_ascension.inscription.windstep.tier.1", "Minor Windstep");
+        add("runic_ascension.inscription.windstep.tier.1.description", "Slightly increases Trace Step range.");
+        add("runic_ascension.inscription.windstep.tier.2", "Veiled Windstep");
+        add("runic_ascension.inscription.windstep.tier.2.description", "Increases Trace Step range and grants brief speed after stepping.");
+        add("runic_ascension.inscription.windstep.tier.3", "Hidden Windstep");
+        add("runic_ascension.inscription.windstep.tier.3.description", "Greatly improves Trace Step and leaves only a faint trace behind.");
+        add("runic_ascension.inscription.still_script", "Still-Script Inscription");
+        add("runic_ascension.inscription.still_script.description.short", "A stabilising inscription that quiets quarrelling formulae.");
+        add("runic_ascension.inscription.still_script.description", "Stabilise and circle are carved as a closed pattern, forcing unstable strokes to move in harmony. The inscription reduces backlash and improves formula stability.");
+        add("runic_ascension.inscription.still_script.tier.1", "Minor Still-Script");
+        add("runic_ascension.inscription.still_script.tier.1.description", "Slightly reduces backlash.");
+        add("runic_ascension.inscription.still_script.tier.2", "Gathered Still-Script");
+        add("runic_ascension.inscription.still_script.tier.2.description", "Reduces backlash and improves formula stability.");
+        add("runic_ascension.inscription.still_script.tier.3", "Hidden Still-Script");
+        add("runic_ascension.inscription.still_script.tier.3.description", "Greatly reduces backlash and steadies unstable formulae.");
+        add("runic_ascension.inscription.mirror_mark", "Mirror-Marked Inscription");
+        add("runic_ascension.inscription.mirror_mark.description.short", "A strange defensive inscription that remembers hostile intent.");
+        add("runic_ascension.inscription.mirror_mark.description", "Mark, guard, and veil are arranged into a reactive script that watches for danger. The inscription subtly improves wards and may later reflect hostile traces.");
+        add("runic_ascension.inscription.mirror_mark.tier.1", "Minor Mirror-Mark");
+        add("runic_ascension.inscription.mirror_mark.tier.1.description", "Slightly improves ward radius.");
+        add("runic_ascension.inscription.mirror_mark.tier.2", "Pulsing Mirror-Mark");
+        add("runic_ascension.inscription.mirror_mark.tier.2.description", "Improves ward radius and prepares future reactive effects.");
+        add("runic_ascension.inscription.mirror_mark.tier.3", "Luminous Mirror-Mark");
+        add("runic_ascension.inscription.mirror_mark.tier.3.description", "Greatly improves ward control and prepares future reflection effects.");
     }
 }
