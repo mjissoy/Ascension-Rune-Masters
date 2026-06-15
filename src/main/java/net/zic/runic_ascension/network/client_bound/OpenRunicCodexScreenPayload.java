@@ -20,14 +20,18 @@ import net.zic.runic_ascension.content.casting.RunicDiscoveredFormula;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public record OpenRunicCodexScreenPayload(
         List<ResourceLocation> knownRunes,
         List<ResourceLocation> discoveredSequences,
         List<RunicDiscoveredFormula> discoveredFormulas,
         List<String> discoveredScraps,
-        String focusedScrap
+        String focusedScrap,
+        Map<ResourceLocation, Integer> inscriptionTiers,
+        int runicRealm
 ) implements CustomPacketPayload {
 
     public static final Type<OpenRunicCodexScreenPayload> TYPE =
@@ -42,6 +46,8 @@ public record OpenRunicCodexScreenPayload(
         discoveredFormulas = discoveredFormulas == null ? List.of() : List.copyOf(discoveredFormulas);
         discoveredScraps = discoveredScraps == null ? List.of() : List.copyOf(discoveredScraps);
         focusedScrap = focusedScrap == null ? "" : focusedScrap;
+        inscriptionTiers = inscriptionTiers == null ? Map.of() : Map.copyOf(inscriptionTiers);
+        runicRealm = Math.max(0, runicRealm);
     }
 
     public OpenRunicCodexScreenPayload(
@@ -49,7 +55,17 @@ public record OpenRunicCodexScreenPayload(
             List<ResourceLocation> discoveredSequences,
             List<RunicDiscoveredFormula> discoveredFormulas
     ) {
-        this(knownRunes, discoveredSequences, discoveredFormulas, List.of(), "");
+        this(knownRunes, discoveredSequences, discoveredFormulas, List.of(), "", Map.of(), 0);
+    }
+
+    public OpenRunicCodexScreenPayload(
+            List<ResourceLocation> knownRunes,
+            List<ResourceLocation> discoveredSequences,
+            List<RunicDiscoveredFormula> discoveredFormulas,
+            List<String> discoveredScraps,
+            String focusedScrap
+    ) {
+        this(knownRunes, discoveredSequences, discoveredFormulas, discoveredScraps, focusedScrap, Map.of(), 0);
     }
 
     public static void sendTo(ServerPlayer player) {
@@ -84,7 +100,9 @@ public record OpenRunicCodexScreenPayload(
                 discoveredSequences,
                 discoveredFormulas,
                 discoveredScraps,
-                focusedScrap
+                focusedScrap,
+                data.getInscriptionTiers(),
+                RunicPathHelper.getRunicMajorRealm(player)
         ));
     }
 
@@ -94,6 +112,8 @@ public record OpenRunicCodexScreenPayload(
         writeFormulaList(buf, packet.discoveredFormulas);
         writeStringList(buf, packet.discoveredScraps);
         buf.writeUtf(packet.focusedScrap);
+        writeInscriptionTierMap(buf, packet.inscriptionTiers);
+        buf.writeInt(packet.runicRealm);
     }
 
     public static OpenRunicCodexScreenPayload decode(RegistryFriendlyByteBuf buf) {
@@ -102,13 +122,17 @@ public record OpenRunicCodexScreenPayload(
         List<RunicDiscoveredFormula> discoveredFormulas = readFormulaList(buf);
         List<String> discoveredScraps = readStringList(buf);
         String focusedScrap = buf.readUtf();
+        Map<ResourceLocation, Integer> inscriptionTiers = readInscriptionTierMap(buf);
+        int runicRealm = buf.readInt();
 
         return new OpenRunicCodexScreenPayload(
                 knownRunes,
                 discoveredSequences,
                 discoveredFormulas,
                 discoveredScraps,
-                focusedScrap
+                focusedScrap,
+                inscriptionTiers,
+                runicRealm
         );
     }
 
@@ -169,6 +193,33 @@ public record OpenRunicCodexScreenPayload(
         return values;
     }
 
+    private static void writeInscriptionTierMap(RegistryFriendlyByteBuf buf, Map<ResourceLocation, Integer> values) {
+        buf.writeInt(values.size());
+
+        values.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(ResourceLocation::toString)))
+                .forEach(entry -> {
+                    ByteBufUtil.encodeString(buf, entry.getKey().toString());
+                    buf.writeInt(Math.max(0, entry.getValue()));
+                });
+    }
+
+    private static Map<ResourceLocation, Integer> readInscriptionTierMap(RegistryFriendlyByteBuf buf) {
+        int size = buf.readInt();
+        Map<ResourceLocation, Integer> values = new HashMap<>();
+
+        for (int i = 0; i < size; i++) {
+            ResourceLocation id = ByteBufUtil.readResourceLocation(buf);
+            int tier = buf.readInt();
+
+            if (id != null && tier > 0) {
+                values.put(id, tier);
+            }
+        }
+
+        return values;
+    }
+
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
@@ -182,7 +233,9 @@ public record OpenRunicCodexScreenPayload(
                         payload.discoveredSequences,
                         payload.discoveredFormulas,
                         payload.discoveredScraps,
-                        payload.focusedScrap
+                        payload.focusedScrap,
+                        payload.inscriptionTiers,
+                        payload.runicRealm
                 );
             }
         });
@@ -194,14 +247,18 @@ public record OpenRunicCodexScreenPayload(
             List<ResourceLocation> discoveredSequences,
             List<RunicDiscoveredFormula> discoveredFormulas,
             List<String> discoveredScraps,
-            String focusedScrap
+            String focusedScrap,
+            Map<ResourceLocation, Integer> inscriptionTiers,
+            int runicRealm
     ) {
         Minecraft.getInstance().setScreen(new RunicCodexScreen(
                 knownRunes,
                 discoveredSequences,
                 discoveredFormulas,
                 discoveredScraps,
-                focusedScrap
+                focusedScrap,
+                inscriptionTiers,
+                runicRealm
         ));
     }
 }
