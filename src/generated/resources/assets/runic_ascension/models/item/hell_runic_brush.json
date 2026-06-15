@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "runic_ascension:item/basic_runic_brush"
+    "layer0": "runic_ascension:item/hell_runic_brush"
   }
 }

@@ -1,6 +1,6 @@
 TODO:
 - [x] Change Casting gui to be simpler -> it's too cluttered atm... ->
 - [x] Give Codex more pages (one for runes, one for sequences, one for inscriptions)
-- [] Different textures for hell, heaven and earth brushes
-- [] Different placeholder texture
+- [x] Different textures for hell, heaven and earth brushes
+- [x] Different placeholder texture
 - [] TEST TEST TEST
