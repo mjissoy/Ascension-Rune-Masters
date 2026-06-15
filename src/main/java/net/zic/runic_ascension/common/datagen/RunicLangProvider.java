@@ -264,6 +264,9 @@ public class RunicLangProvider extends LanguageProvider {
         add("runic_ascension.runic.casting.title", "Runic Casting");
         add("runic_ascension.runic.casting.timer", "Time left: %ss");
         add("runic_ascension.runic.casting.info", "Slots: %s | Time: %ss");
+        add("runic_ascension.runic.casting.qi.empty", "Qi: —");
+        add("runic_ascension.runic.casting.qi.unknown", "Qi: ?");
+        add("runic_ascension.runic.casting.qi.cost", "Qi: %s");
         add("runic_ascension.runic.casting.sequence_panel.title", "Sequence Reading");
         add("runic_ascension.runic.casting.realm_info", "Realm %s | Insight %s");
         add("runic_ascension.runic.casting.suppression", "Suppression: Realm %s / %s");
